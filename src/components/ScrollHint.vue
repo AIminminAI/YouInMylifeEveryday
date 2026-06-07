@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 const show = ref(true)
 let timer: number
+
+const isMobile = computed(() => {
+  return typeof window !== 'undefined' && 'ontouchstart' in window
+})
 
 onMounted(() => {
   timer = window.setTimeout(() => {
@@ -22,7 +26,9 @@ onUnmounted(() => {
       class="fixed bottom-24 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
     >
       <div class="flex flex-col items-center gap-2 text-white/30">
-        <div class="text-xs font-body tracking-wider">滚动鼠标或点击节点探索星轨</div>
+        <div class="text-xs font-body tracking-wider">
+          {{ isMobile ? '滑动或点击节点探索星轨' : '滚动鼠标或点击节点探索星轨' }}
+        </div>
         <div class="animate-bounce">
           <svg
             width="24"

@@ -11,6 +11,7 @@ import ExportButton from '@/components/ExportButton.vue'
 import PlayControl from '@/components/PlayControl.vue'
 import PaywallModal from '@/components/PaywallModal.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import DevTools from '@/components/DevTools.vue'
 
 const sceneContainer = ref<HTMLElement | null>(null)
 const activeNodeIndex = ref(0)
@@ -153,7 +154,7 @@ function handleNavNext() {
     />
 
     <!-- 分享按钮 -->
-    <div class="fixed top-6 right-[100px] z-20 pointer-events-auto">
+    <div class="fixed top-6 right-6 sm:right-[100px] z-20 pointer-events-auto">
       <ShareButton :node-title="timelineData.nodes[activeNodeIndex].title" />
     </div>
 
@@ -186,6 +187,9 @@ function handleNavNext() {
       :trigger="paywallTrigger"
       @close="showPaywall = false"
     />
+
+    <!-- 开发者工具 -->
+    <DevTools />
   </div>
 </template>
 

@@ -47,7 +47,7 @@ function onImageError() {
   <Transition name="card">
     <div
       v-if="show && node"
-      class="fixed right-4 top-1/2 -translate-y-1/2 w-80 z-20 pointer-events-auto"
+      class="fixed right-2 sm:right-4 top-1/2 -translate-y-1/2 w-[calc(100%-1rem)] sm:w-80 z-20 pointer-events-auto"
     >
       <div class="glass rounded-2xl overflow-hidden shadow-2xl">
         <!-- 图片区域 -->
@@ -128,11 +128,21 @@ function onImageError() {
 
 .card-enter-from {
   opacity: 0;
-  transform: translate(40px, -50%);
+  transform: translate(20px, -50%);
 }
-
 .card-leave-to {
   opacity: 0;
-  transform: translate(40px, -50%);
+  transform: translate(20px, -50%);
+}
+
+@media (max-width: 640px) {
+  .card-enter-from {
+    opacity: 0;
+    transform: translate(-50%, 40px);
+  }
+  .card-leave-to {
+    opacity: 0;
+    transform: translate(-50%, 40px);
+  }
 }
 </style>

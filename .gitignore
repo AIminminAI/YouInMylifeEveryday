@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .vite
+
+# 后端数据
+.env
+data/
+uploads/

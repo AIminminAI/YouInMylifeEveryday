@@ -74,6 +74,22 @@ export function useThreeScene(options: UseThreeSceneOptions) {
   function init() {
     if (!container.value) return
 
+    // WebGL 支持检测
+    const testCanvas = document.createElement('canvas')
+    const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')
+    if (!gl) {
+      const fallback = document.createElement('div')
+      fallback.className = 'absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a1a] text-white/60 p-8 text-center'
+      fallback.innerHTML = `
+        <div class="text-4xl mb-4">🌌</div>
+        <div class="font-display text-xl mb-2">您的浏览器不支持 3D 渲染</div>
+        <div class="text-sm text-white/40 font-body">请使用 Chrome、Edge 或 Safari 浏览器打开</div>
+      `
+      container.value.appendChild(fallback)
+      isLoading.value = false
+      return
+    }
+
     scene = new THREE.Scene()
     scene.fog = new THREE.FogExp2(0x0a0a1a, 0.008)
 
