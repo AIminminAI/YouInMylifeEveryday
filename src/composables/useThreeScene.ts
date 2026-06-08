@@ -71,71 +71,81 @@ export function useThreeScene(options: UseThreeSceneOptions) {
   function init() {
     if (!container.value) return
 
-    // WebGL 支持检测
-    const testCanvas = document.createElement('canvas')
-    const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')
-    if (!gl) {
-      const fallback = document.createElement('div')
-      fallback.className = 'absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a1a] text-white/60 p-8 text-center'
-      fallback.innerHTML = `
-        <div class="text-4xl mb-4">🌌</div>
-        <div class="font-display text-xl mb-2">您的浏览器不支持 3D 渲染</div>
-        <div class="text-sm text-white/40 font-body">请使用 Chrome、Edge 或 Safari 浏览器打开</div>
-      `
-      container.value.appendChild(fallback)
+    try {
+      // WebGL 支持检测
+      const testCanvas = document.createElement('canvas')
+      const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')
+      if (!gl) {
+        showFallback('您的浏览器不支持 3D 渲染', '请使用 Chrome、Edge 或 Safari 浏览器打开')
+        return
+      }
+
+      scene = new THREE.Scene()
+      scene.fog = new THREE.FogExp2(0x0a0a1a, 0.008)
+
+      camera = new THREE.PerspectiveCamera(
+        60,
+        container.value.clientWidth / container.value.clientHeight,
+        0.1,
+        1000,
+      )
+      camera.position.set(12, 5, 12)
+
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: false,
+        preserveDrawingBuffer: true,
+      })
+      renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+      renderer.toneMapping = THREE.ACESFilmicToneMapping
+      renderer.toneMappingExposure = 1.2
+      container.value.appendChild(renderer.domElement)
+
+      raycaster = new THREE.Raycaster()
+      mouse = new THREE.Vector2()
+
+      createStarField()
+      createSpiralCurve()
+      createNodeSpheres()
+      createAmbientLight()
+
+      // 初始摄像机位置 - 从远处开始，有开场飞入效果
+      const startPos = spiralCurve.getPointAt(0)
+      camera.position.copy(startPos.clone().add(new THREE.Vector3(15, 10, 20)))
+      camera.lookAt(startPos)
+
+      // 事件
+      window.addEventListener('resize', onResize)
+      renderer.domElement.addEventListener('click', onCanvasClick)
+      renderer.domElement.addEventListener('wheel', onWheel, { passive: false })
+      renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false })
+      renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false })
+
       isLoading.value = false
-      return
+      animate()
+
+      // 开场飞入动画后开始自动播放
+      setTimeout(() => {
+        startCinematicIntro()
+      }, 500)
+    } catch (err) {
+      console.error('[ThreeScene] 初始化失败:', err)
+      showFallback('3D 场景加载失败', '请刷新页面重试，或使用 Chrome 浏览器打开')
     }
+  }
 
-    scene = new THREE.Scene()
-    scene.fog = new THREE.FogExp2(0x0a0a1a, 0.008)
-
-    camera = new THREE.PerspectiveCamera(
-      60,
-      container.value.clientWidth / container.value.clientHeight,
-      0.1,
-      1000,
-    )
-    camera.position.set(12, 5, 12)
-
-    renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: false,
-      preserveDrawingBuffer: true,
-    })
-    renderer.setSize(container.value.clientWidth, container.value.clientHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.2
-    container.value.appendChild(renderer.domElement)
-
-    raycaster = new THREE.Raycaster()
-    mouse = new THREE.Vector2()
-
-    createStarField()
-    createSpiralCurve()
-    createNodeSpheres()
-    createAmbientLight()
-
-    // 初始摄像机位置 - 从远处开始，有开场飞入效果
-    const startPos = spiralCurve.getPointAt(0)
-    camera.position.copy(startPos.clone().add(new THREE.Vector3(15, 10, 20)))
-    camera.lookAt(startPos)
-
-    // 事件
-    window.addEventListener('resize', onResize)
-    renderer.domElement.addEventListener('click', onCanvasClick)
-    renderer.domElement.addEventListener('wheel', onWheel, { passive: false })
-    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false })
-    renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false })
-
+  function showFallback(title: string, subtitle: string) {
+    if (!container.value) return
+    const fallback = document.createElement('div')
+    fallback.className = 'absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a1a] text-white/60 p-8 text-center'
+    fallback.innerHTML = `
+      <div class="text-4xl mb-4">🌌</div>
+      <div class="font-display text-xl mb-2">${title}</div>
+      <div class="text-sm text-white/40 font-body">${subtitle}</div>
+    `
+    container.value.appendChild(fallback)
     isLoading.value = false
-    animate()
-
-    // 开场飞入动画后开始自动播放
-    setTimeout(() => {
-      startCinematicIntro()
-    }, 500)
   }
 
   // ========== 开场飞入 ==========

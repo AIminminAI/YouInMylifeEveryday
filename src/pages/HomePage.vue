@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { Sparkles } from 'lucide-vue-next'
 import { useThreeScene } from '@/composables/useThreeScene'
 import { useSubscription } from '@/composables/useSubscription'
 import { timelineData } from '@/data/timelineData'
@@ -102,21 +103,18 @@ function handleNavNext() {
     <!-- 标题 -->
     <TitleOverlay :title="timelineData.title" :subtitle="timelineData.subtitle" />
 
-    <!-- 免费版标识 -->
+    <!-- 免费版标识 - 温和提示 -->
     <div
       v-if="isFree"
       class="fixed top-6 left-6 z-20 pointer-events-auto"
     >
-      <div class="glass rounded-lg px-3 py-1.5 flex items-center gap-2">
-        <span class="text-[10px] text-white/40 font-body">免费版</span>
-        <span class="text-[10px] text-white/20">·</span>
-        <button
-          class="text-[10px] text-[#00d4ff]/70 hover:text-[#00d4ff] transition-colors font-body"
-          @click="showPaywall = true; paywallTrigger = 'node'"
-        >
-          升级高级版
-        </button>
-      </div>
+      <button
+        class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 hover:bg-white/[0.08] transition-all"
+        @click="showPaywall = true; paywallTrigger = 'node'"
+      >
+        <Sparkles class="text-[#00d4ff]/50" :size="12" />
+        <span class="text-[10px] text-white/30 font-body">升级</span>
+      </button>
     </div>
 
     <!-- 已付费标识 -->
