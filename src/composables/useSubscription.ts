@@ -73,13 +73,13 @@ export function useSubscription() {
     return true
   }
 
-  // 视频导出：免费版带水印，付费版无水印
+  // 视频导出：免费版也可导出，无水印
   function canExportVideo(): boolean {
     return true
   }
 
   function canExportVideoWithoutWatermark(): boolean {
-    return currentPlan.value !== 'free'
+    return true
   }
 
   // 皮肤：免费版只有1种，付费版有3种

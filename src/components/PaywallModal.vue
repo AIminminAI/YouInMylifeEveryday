@@ -31,15 +31,15 @@ const copied = ref(false)
 const triggerTexts: Record<string, { title: string; desc: string }> = {
   node: {
     title: '升级高级版',
-    desc: '解锁无水印视频导出、更多星空皮肤和自定义标题',
+    desc: '解锁更多星空皮肤、自定义标题和 AI 自动文案',
   },
   'export-video': {
-    title: '升级去除视频水印',
-    desc: '升级高级版后，导出视频将不带水印，还可以使用更多皮肤',
+    title: '升级高级版',
+    desc: '解锁更多星空皮肤、自定义标题和 AI 自动文案',
   },
   'export-hd': {
     title: '升级高级版',
-    desc: '升级后可使用更多星空皮肤和自定义标题',
+    desc: '解锁更多星空皮肤、自定义标题和 AI 自动文案',
   },
   skin: {
     title: '解锁更多星轨皮肤',
@@ -163,9 +163,9 @@ function handleClose() {
                     </div>
                   </div>
                   <div class="flex flex-wrap gap-x-4 gap-y-1">
-                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 无水印视频导出</span>
                     <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 3 种星空皮肤</span>
                     <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 自定义标题</span>
+                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> AI 自动文案</span>
                   </div>
                 </div>
               </button>

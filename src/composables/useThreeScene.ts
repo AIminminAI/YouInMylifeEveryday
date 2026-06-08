@@ -713,7 +713,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
   function startVideoExport() {
     if (isRecording) return
 
-    // 免费版可以导出视频，但带水印
+    // 免费版可以导出视频，无水印（与截图一致）
     isRecording = true
     isExportingVideo.value = true
     exportProgress.value = 0
@@ -779,8 +779,6 @@ export function useThreeScene(options: UseThreeSceneOptions) {
       if (e.data.size > 0) recordedChunks.push(e.data)
     }
 
-    const shouldAddWatermark = isFree.value
-
     mediaRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: selectedMime })
       const url = URL.createObjectURL(blob)
@@ -792,11 +790,6 @@ export function useThreeScene(options: UseThreeSceneOptions) {
       URL.revokeObjectURL(url)
 
       cleanupRecording()
-
-      // 免费版导出视频后提示可升级去水印
-      if (shouldAddWatermark) {
-        onPaywallRequired('export-video')
-      }
     }
 
     mediaRecorder.start(100)
