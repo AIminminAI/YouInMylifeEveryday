@@ -4,51 +4,41 @@
 const users = {}
 const orders = {}
 
-function findUserById(userId) {
+export function findUserById(userId) {
   return users[userId]
 }
 
-function getOrCreateUser(userId) {
+export function getOrCreateUser(userId) {
   if (!users[userId]) {
     users[userId] = { id: userId, plan: 'free' }
   }
   return users[userId]
 }
 
-function updateUserPlan(userId, plan) {
+export function updateUserPlan(userId, plan) {
   const user = getOrCreateUser(userId)
   user.plan = plan
 }
 
-function createOrderRecord(order) {
+export function createOrderRecord(order) {
   orders[order.id] = order
 }
 
-function findOrderById(orderId) {
+export function findOrderById(orderId) {
   return orders[orderId]
 }
 
-function findOrderByIdAndUser(orderId, userId) {
+export function findOrderByIdAndUser(orderId, userId) {
   const order = orders[orderId]
   if (order && order.user_id === userId) return order
   return undefined
 }
 
-function updateOrderStatus(orderId, status, tradeNo, paidAt) {
+export function updateOrderStatus(orderId, status, tradeNo, paidAt) {
   const order = orders[orderId]
   if (order) {
     order.status = status
     order.trade_no = tradeNo
     order.paid_at = paidAt
   }
-}
-
-module.exports = {
-  findUserById,
-  getOrCreateUser,
-  updateUserPlan,
-  createOrderRecord,
-  findOrderById,
-  findOrderByIdAndUser,
-  updateOrderStatus,
 }
