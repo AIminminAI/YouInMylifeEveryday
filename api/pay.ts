@@ -1,8 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { initDB, createOrderRecord, findOrderByIdAndUser, updateOrderStatus, updateUserPlan, findOrderById, findUserById } from './_db'
-
-// 初始化
-initDB()
+import { createOrderRecord, findOrderByIdAndUser, updateOrderStatus, updateUserPlan, findOrderById, findUserById } from './_db'
 
 const PRICES: Record<string, { amount: number; label: string }> = {
   full: { amount: 1990, label: '高级版 ¥19.9' },
