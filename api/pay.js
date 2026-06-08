@@ -1,23 +1,28 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createOrderRecord, findOrderByIdAndUser, updateOrderStatus, updateUserPlan, findOrderById, findUserById } from './_db'
+const {
+  createOrderRecord,
+  findOrderByIdAndUser,
+  updateOrderStatus,
+  updateUserPlan,
+  findOrderById,
+  findUserById,
+} = require('./_db')
 
-const PRICES: Record<string, { amount: number; label: string }> = {
+const PRICES = {
   full: { amount: 1990, label: '高级版 ¥19.9' },
   premium: { amount: 9900, label: '纪念版 ¥99' },
 }
 
-// 简单 UUID 生成（不依赖 uuid 库）
-function simpleId(): string {
+function simpleId() {
   return 'xxxx-xxxx-xxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16))
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   if (req.method === 'OPTIONS') return res.status(200).end()
 
-  const action = req.query.action as string
+  const action = req.query.action
 
   try {
     if (action === 'create-order' && req.method === 'POST') {
@@ -34,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
       return res.json({
         orderId, amount: price.amount, description: price.label,
-        payHint: `请扫码支付 ¥${(price.amount / 100).toFixed(1)}，备注：${orderId.slice(-6)}`,
+        payHint: '请扫码支付 ¥' + (price.amount / 100).toFixed(1) + '，备注：' + orderId.slice(-6),
         orderSuffix: orderId.slice(-6),
       })
     }
@@ -46,13 +51,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!order) return res.status(404).json({ error: '订单不存在' })
       if (order.status === 'paid') return res.json({ success: true, plan: order.plan })
       const now = new Date().toISOString()
-      updateOrderStatus(orderId, 'paid', `manual_${Date.now()}`, now)
+      updateOrderStatus(orderId, 'paid', 'manual_' + Date.now(), now)
       updateUserPlan(userId, order.plan)
       return res.json({ success: true, plan: order.plan })
     }
 
     if (action === 'order-status') {
-      const id = req.query.id as string
+      const id = req.query.id
       if (!id) return res.status(400).json({ error: '缺少 ID' })
       const order = findOrderById(id)
       if (!order) return res.status(404).json({ error: '订单不存在' })
@@ -60,10 +65,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (action === 'user-status') {
-      const id = req.query.id as string
+      const id = req.query.id
       if (!id) return res.status(400).json({ error: '缺少 ID' })
       const user = findUserById(id)
-      return res.json({ plan: user?.plan || 'free', isPaid: !!user && user.plan !== 'free' })
+      return res.json({ plan: user ? user.plan : 'free', isPaid: !!(user && user.plan !== 'free') })
     }
 
     return res.status(400).json({ error: '未知操作' })
