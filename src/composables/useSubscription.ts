@@ -40,7 +40,7 @@ function getUserId(): string {
 
 const currentPlan = ref<PlanType>(loadPlan())
 const userId = ref(getUserId())
-const FREE_NODE_LIMIT = 3
+const FREE_NODE_LIMIT = 10
 
 // 支付状态
 const isPaying = ref(false)
@@ -59,19 +59,36 @@ export function useSubscription() {
     savePlan(plan)
   })
 
-  function isNodeLocked(nodeIndex: number): boolean {
-    return currentPlan.value === 'free' && nodeIndex >= FREE_NODE_LIMIT
+  // 免费版：所有10个节点均可访问，不再有锁定
+  function isNodeLocked(_nodeIndex: number): boolean {
+    return false
   }
 
-  function canAccessNode(nodeIndex: number): boolean {
-    return !isNodeLocked(nodeIndex)
+  function canAccessNode(_nodeIndex: number): boolean {
+    return true
   }
 
+  // 免费版截图无水印
   function canExportHD(): boolean {
+    return true
+  }
+
+  // 视频导出：免费版带水印，付费版无水印
+  function canExportVideo(): boolean {
+    return true
+  }
+
+  function canExportVideoWithoutWatermark(): boolean {
     return currentPlan.value !== 'free'
   }
 
-  function canExportVideo(): boolean {
+  // 皮肤：免费版只有1种，付费版有3种
+  function canAccessAllSkins(): boolean {
+    return currentPlan.value !== 'free'
+  }
+
+  // 自定义标题：仅付费版
+  function canCustomTitle(): boolean {
     return currentPlan.value !== 'free'
   }
 
@@ -88,11 +105,9 @@ export function useSubscription() {
     isPaying.value = true
 
     try {
-      // 1. 创建订单
       const order = await createOrder(userId.value, plan)
       currentOrder.value = order
 
-      // 2. 展示收款码弹窗
       showQRCode.value = true
 
       return true
@@ -157,6 +172,9 @@ export function useSubscription() {
     canAccessNode,
     canExportHD,
     canExportVideo,
+    canExportVideoWithoutWatermark,
+    canAccessAllSkins,
+    canCustomTitle,
     upgradeToFull,
     upgradeToPremium,
     startPayment,

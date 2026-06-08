@@ -1,26 +1,18 @@
 import { Router, Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
-import { getDB } from '../db'
+import { findUserByOpenId, findUserById, findNodesByUserId, createUser } from '../db'
 
 const router = Router()
 
 // ========== 创建/获取用户 ==========
 router.post('/user', (req: Request, res: Response) => {
   try {
-    const { openId, nickname, avatarUrl } = req.body
-    const db = getDB()
+    const { openId, nickname } = req.body
 
-    // 查找已有用户
-    let user = db.prepare('SELECT * FROM users WHERE open_id = ?').get(openId) as any
-
+    let user = findUserByOpenId(openId)
     if (!user) {
       const userId = uuidv4()
-      db.prepare(`
-        INSERT INTO users (id, open_id, nickname, avatar_url)
-        VALUES (?, ?, ?, ?)
-      `).run(userId, openId, nickname || '用户', avatarUrl || '')
-
-      user = { id: userId, plan: 'free' }
+      user = createUser(userId, openId, nickname || '用户')
     }
 
     return res.json({
@@ -36,20 +28,16 @@ router.post('/user', (req: Request, res: Response) => {
 // ========== 获取用户时间线数据 ==========
 router.get('/:userId', (req: Request, res: Response) => {
   try {
-    const db = getDB()
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.userId) as any
+    const user = findUserById(req.params.userId)
 
     if (!user) {
       return res.status(404).json({ error: '用户不存在' })
     }
 
-    const nodes = db.prepare(
-      'SELECT * FROM timeline_nodes WHERE user_id = ? ORDER BY sort_order ASC'
-    ).all(req.params.userId)
+    const nodes = findNodesByUserId(req.params.userId)
 
-    // 计算每个节点的 curvePosition
     const totalNodes = nodes.length
-    const nodesWithPosition = (nodes as any[]).map((node, index) => ({
+    const nodesWithPosition = nodes.map((node, index) => ({
       ...node,
       curvePosition: totalNodes <= 1 ? 0 : index / (totalNodes - 1),
     }))

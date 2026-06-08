@@ -30,20 +30,20 @@ const copied = ref(false)
 // 根据触发来源显示不同文案
 const triggerTexts: Record<string, { title: string; desc: string }> = {
   node: {
-    title: '解锁完整人生星轨',
-    desc: '免费版仅可记录 3 个时光节点，升级后可记录 10 个珍贵瞬间',
+    title: '升级高级版',
+    desc: '解锁无水印视频导出、更多星空皮肤和自定义标题',
   },
   'export-video': {
-    title: '导出高清纪念视频',
-    desc: '将你的生命星轨导出为高清视频，分享给最爱的人',
+    title: '升级去除视频水印',
+    desc: '升级高级版后，导出视频将不带水印，还可以使用更多皮肤',
   },
   'export-hd': {
-    title: '解锁高清导出',
-    desc: '免费版导出含水印，升级后可获得无水印高清图片',
+    title: '升级高级版',
+    desc: '升级后可使用更多星空皮肤和自定义标题',
   },
   skin: {
     title: '解锁更多星轨皮肤',
-    desc: '赛博朋克、水墨画卷、像素小镇... 每种风格都是一种心情',
+    desc: '赛博朋克、水墨画卷... 每种风格都是一种心情',
   },
 }
 
@@ -143,7 +143,7 @@ function handleClose() {
 
             <!-- 套餐选择 -->
             <div class="px-6 py-4 space-y-3">
-              <!-- 完整版 -->
+              <!-- 高级版 -->
               <button
                 class="w-full relative rounded-xl border transition-all duration-300 text-left"
                 :class="selectedPlan === 'full' ? 'border-[#00d4ff]/60 bg-[#00d4ff]/10 shadow-[0_0_20px_rgba(0,212,255,0.15)]' : 'border-white/10 bg-white/[0.03] hover:border-white/20'"
@@ -155,7 +155,7 @@ function handleClose() {
                   <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
                       <Sparkles :size="16" class="text-[#00d4ff]" />
-                      <span class="text-white font-display text-sm">完整版</span>
+                      <span class="text-white font-display text-sm">高级版</span>
                     </div>
                     <div class="text-right">
                       <span class="text-[#00d4ff] font-display text-xl font-bold">¥19.9</span>
@@ -163,9 +163,9 @@ function handleClose() {
                     </div>
                   </div>
                   <div class="flex flex-wrap gap-x-4 gap-y-1">
-                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 10 个时光节点</span>
-                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 高清视频导出</span>
-                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 无水印截图</span>
+                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 无水印视频导出</span>
+                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 3 种星空皮肤</span>
+                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#00d4ff]" /> 自定义标题</span>
                   </div>
                 </div>
               </button>
@@ -189,7 +189,7 @@ function handleClose() {
                     </div>
                   </div>
                   <div class="flex flex-wrap gap-x-4 gap-y-1">
-                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#ffd700]" /> 完整版所有功能</span>
+                    <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#ffd700]" /> 高级版所有功能</span>
                     <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#ffd700]" /> AI 自动文案</span>
                     <span class="flex items-center gap-1 text-white/50 text-xs"><Check :size="12" class="text-[#ffd700]" /> 实体光栅画</span>
                   </div>
@@ -198,7 +198,7 @@ function handleClose() {
             </div>
 
             <!-- 支付按钮 -->
-            <div class="px-6 pb-6">
+            <div class="px-6 pb-4">
               <button
                 class="w-full py-3 rounded-xl font-display text-sm tracking-wide transition-all duration-300 disabled:opacity-50"
                 :class="selectedPlan === 'full' ? 'bg-gradient-to-r from-[#00d4ff] to-[#0099ff] text-black hover:shadow-[0_0_24px_rgba(0,212,255,0.4)]' : 'bg-gradient-to-r from-[#ffd700] to-[#ff9500] text-black hover:shadow-[0_0_24px_rgba(255,215,0,0.4)]'"
@@ -209,9 +209,19 @@ function handleClose() {
                   <Loader2 :size="16" class="animate-spin" /> 处理中...
                 </span>
                 <span v-else>
-                  立即解锁 {{ selectedPlan === 'full' ? '¥19.9' : '¥99' }}
+                  立即升级 {{ selectedPlan === 'full' ? '¥19.9' : '¥99' }}
                 </span>
               </button>
+            </div>
+
+            <!-- 法律合规链接 -->
+            <div class="px-6 pb-5 text-center">
+              <p class="text-white/20 text-[10px] font-body">
+                付款即表示同意
+                <a href="/terms.html" target="_blank" class="text-white/30 hover:text-white/50 underline">用户协议</a>
+                和
+                <a href="/privacy.html" target="_blank" class="text-white/30 hover:text-white/50 underline">隐私政策</a>
+              </p>
             </div>
           </template>
 
@@ -300,9 +310,9 @@ function handleClose() {
               <div class="w-16 h-16 rounded-full bg-[#00d4ff]/20 flex items-center justify-center">
                 <CheckCircle :size="32" class="text-[#00d4ff]" />
               </div>
-              <h3 class="font-display text-xl text-white">解锁成功</h3>
+              <h3 class="font-display text-xl text-white">升级成功</h3>
               <p class="text-white/50 text-sm text-center font-body">
-                你的生命星轨已解锁全部功能<br/>开始记录更多珍贵时刻吧
+                你已解锁高级版全部功能<br/>开始体验更多精彩吧
               </p>
               <button
                 class="mt-2 px-8 py-2.5 rounded-xl font-display text-sm bg-gradient-to-r from-[#00d4ff] to-[#0099ff] text-black"

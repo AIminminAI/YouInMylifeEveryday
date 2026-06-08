@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ChevronLeft, ChevronRight, Lock } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 const props = defineProps<{
   currentIndex: number
   totalNodes: number
-  freeLimit: number // -1 表示无限制
 }>()
 
 const emit = defineEmits<{
@@ -17,10 +16,6 @@ const emit = defineEmits<{
 const progress = computed(() => {
   return ((props.currentIndex + 1) / props.totalNodes) * 100
 })
-
-function isLocked(i: number): boolean {
-  return props.freeLimit > 0 && i >= props.freeLimit
-}
 </script>
 
 <template>
@@ -42,25 +37,18 @@ function isLocked(i: number): boolean {
           :key="i"
           class="relative rounded-full transition-all duration-500 flex items-center justify-center"
           :class="
-            isLocked(i - 1)
-              ? 'w-2 h-2 bg-white/10 cursor-pointer hover:bg-[#00d4ff]/40'
-              : i - 1 === currentIndex
-                ? 'w-5 h-2 bg-[#00d4ff] shadow-[0_0_12px_rgba(0,212,255,0.6)]'
-                : i - 1 < currentIndex
-                  ? 'w-2 h-2 bg-[#8b5cf6]/60'
-                  : 'w-2 h-2 bg-white/20 hover:bg-white/40'
+            i - 1 === currentIndex
+              ? 'w-5 h-2 bg-[#00d4ff] shadow-[0_0_12px_rgba(0,212,255,0.6)]'
+              : i - 1 < currentIndex
+                ? 'w-2 h-2 bg-[#8b5cf6]/60'
+                : 'w-2 h-2 bg-white/20 hover:bg-white/40'
           "
           @click="emit('goto', i - 1)"
         >
           <span
-            v-if="i - 1 === currentIndex && !isLocked(i - 1)"
+            v-if="i - 1 === currentIndex"
             class="absolute inset-0 rounded-full bg-[#00d4ff] animate-ping opacity-30"
           ></span>
-          <Lock
-            v-if="isLocked(i - 1)"
-            :size="6"
-            class="text-white/30"
-          />
         </button>
       </div>
 

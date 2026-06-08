@@ -54,18 +54,16 @@ function resetToFree() {
           </div>
           <div class="flex items-center justify-between text-xs">
             <span class="text-white/40 font-body">节点限制</span>
-            <span class="text-white/60 font-body">{{ isFree ? '3/10' : '10/10' }}</span>
+            <span class="text-white/60 font-body">10/10</span>
           </div>
           <div class="flex items-center justify-between text-xs">
             <span class="text-white/40 font-body">截图水印</span>
-            <span class="font-body" :class="isFree ? 'text-red-400/70' : 'text-green-400/70'">
-              {{ isFree ? '有' : '无' }}
-            </span>
+            <span class="font-body text-green-400/70">无</span>
           </div>
           <div class="flex items-center justify-between text-xs">
             <span class="text-white/40 font-body">视频导出</span>
-            <span class="font-body" :class="isFree ? 'text-red-400/70' : 'text-green-400/70'">
-              {{ isFree ? '锁定' : '可用' }}
+            <span class="font-body" :class="isFree ? 'text-yellow-400/70' : 'text-green-400/70'">
+              {{ isFree ? '有水印' : '无水印' }}
             </span>
           </div>
         </div>

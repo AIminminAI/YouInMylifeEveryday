@@ -1,71 +1,210 @@
-import Database from 'better-sqlite3'
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
 
 const DB_DIR = path.join(process.cwd(), 'data')
-const DB_PATH = process.env.DB_PATH || path.join(DB_DIR, 'starorbit.db')
+const DB_PATH = process.env.DB_PATH || path.join(DB_DIR, 'starorbit.json')
 
-let db: Database.Database
+// 数据结构类型定义
+interface UserData {
+  id: string
+  open_id: string
+  nickname: string
+  avatar_url: string
+  plan: string
+  created_at: string
+  updated_at: string
+}
 
-export function initDB(): Database.Database {
-  // 确保 data 目录存在
+interface OrderData {
+  id: string
+  user_id: string
+  plan: string
+  amount: number
+  channel: string
+  status: string
+  trade_no: string
+  created_at: string
+  paid_at: string
+}
+
+interface TimelineNodeData {
+  id: string
+  user_id: string
+  year: number | null
+  title: string
+  description: string
+  image_url: string
+  sort_order: number
+  ai_generated: number
+  created_at: string
+  updated_at: string
+}
+
+interface DBSchema {
+  users: Record<string, UserData>
+  orders: Record<string, OrderData>
+  nodes: Record<string, TimelineNodeData>
+}
+
+// 内存缓存
+let memoryDB: DBSchema | null = null
+
+function getDefaultDB(): DBSchema {
+  return {
+    users: {},
+    orders: {},
+    nodes: {},
+  }
+}
+
+function nowISO(): string {
+  return new Date().toISOString().replace('T', ' ').replace(/\.\d+Z$/, '')
+}
+
+function saveToFile(): void {
+  if (!memoryDB) return
+  try {
+    if (!fs.existsSync(DB_DIR)) {
+      fs.mkdirSync(DB_DIR, { recursive: true })
+    }
+    fs.writeFileSync(DB_PATH, JSON.stringify(memoryDB, null, 2), 'utf-8')
+  } catch {
+    // 静默失败
+  }
+}
+
+export function initDB(): DBSchema {
+  if (memoryDB) return memoryDB
+
   if (!fs.existsSync(DB_DIR)) {
     fs.mkdirSync(DB_DIR, { recursive: true })
   }
 
-  db = new Database(DB_PATH)
+  if (fs.existsSync(DB_PATH)) {
+    try {
+      const raw = fs.readFileSync(DB_PATH, 'utf-8')
+      memoryDB = JSON.parse(raw) as DBSchema
+      console.log('[DB] 数据库从 JSON 文件加载完成')
+      return memoryDB
+    } catch {
+      // 文件损坏
+    }
+  }
 
-  // 启用 WAL 模式提升并发性能
-  db.pragma('journal_mode = WAL')
-
-  // 创建表
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      open_id TEXT,
-      nickname TEXT,
-      avatar_url TEXT,
-      plan TEXT DEFAULT 'free',
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS orders (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      plan TEXT NOT NULL,
-      amount INTEGER NOT NULL,
-      channel TEXT NOT NULL,
-      status TEXT DEFAULT 'pending',
-      trade_no TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      paid_at TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS timeline_nodes (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      year INTEGER,
-      title TEXT NOT NULL,
-      description TEXT,
-      image_url TEXT,
-      sort_order INTEGER DEFAULT 0,
-      ai_generated INTEGER DEFAULT 0,
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
-    CREATE INDEX IF NOT EXISTS idx_nodes_user ON timeline_nodes(user_id);
-  `)
-
-  console.log('[DB] 数据库初始化完成')
-  return db
+  memoryDB = getDefaultDB()
+  saveToFile()
+  console.log('[DB] 数据库初始化完成（JSON 模式）')
+  return memoryDB
 }
 
-export function getDB(): Database.Database {
-  if (!db) {
+export function getDB(): DBSchema {
+  if (!memoryDB) {
     return initDB()
   }
-  return db
+  return memoryDB
+}
+
+// ========== 用户操作 ==========
+
+export function findUserByOpenId(openId: string): UserData | undefined {
+  const db = getDB()
+  return Object.values(db.users).find((u) => u.open_id === openId)
+}
+
+export function findUserById(userId: string): UserData | undefined {
+  const db = getDB()
+  return db.users[userId]
+}
+
+export function createUser(id: string, openId: string, nickname: string): UserData {
+  const db = getDB()
+  const user: UserData = {
+    id,
+    open_id: openId,
+    nickname,
+    avatar_url: '',
+    plan: 'free',
+    created_at: nowISO(),
+    updated_at: nowISO(),
+  }
+  db.users[id] = user
+  saveToFile()
+  return user
+}
+
+export function updateUserPlan(userId: string, plan: string): void {
+  const db = getDB()
+  if (db.users[userId]) {
+    db.users[userId].plan = plan
+    db.users[userId].updated_at = nowISO()
+    saveToFile()
+  }
+}
+
+// ========== 订单操作 ==========
+
+export function createOrder(order: OrderData): void {
+  const db = getDB()
+  db.orders[order.id] = order
+  saveToFile()
+}
+
+export function findOrderById(orderId: string): OrderData | undefined {
+  const db = getDB()
+  return db.orders[orderId]
+}
+
+export function findOrderByIdAndUser(orderId: string, userId: string): OrderData | undefined {
+  const db = getDB()
+  const order = db.orders[orderId]
+  if (order && order.user_id === userId) return order
+  return undefined
+}
+
+export function updateOrderStatus(orderId: string, status: string, tradeNo?: string, paidAt?: string): void {
+  const db = getDB()
+  if (db.orders[orderId]) {
+    db.orders[orderId].status = status
+    if (tradeNo) db.orders[orderId].trade_no = tradeNo
+    if (paidAt) db.orders[orderId].paid_at = paidAt
+    saveToFile()
+  }
+}
+
+// ========== 时间线节点操作 ==========
+
+export function findNodesByUserId(userId: string): TimelineNodeData[] {
+  const db = getDB()
+  return Object.values(db.nodes)
+    .filter((n) => n.user_id === userId)
+    .sort((a, b) => a.sort_order - b.sort_order)
+}
+
+export function createNode(node: TimelineNodeData): void {
+  const db = getDB()
+  db.nodes[node.id] = node
+  saveToFile()
+}
+
+export function updateNode(nodeId: string, year: number | null, title: string, description: string): void {
+  const db = getDB()
+  if (db.nodes[nodeId]) {
+    db.nodes[nodeId].year = year
+    db.nodes[nodeId].title = title
+    db.nodes[nodeId].description = description
+    db.nodes[nodeId].updated_at = nowISO()
+    saveToFile()
+  }
+}
+
+export function deleteNode(nodeId: string): void {
+  const db = getDB()
+  delete db.nodes[nodeId]
+  saveToFile()
+}
+
+export function getMaxSortOrder(userId: string): number {
+  const nodes = findNodesByUserId(userId)
+  if (nodes.length === 0) return 0
+  return Math.max(...nodes.map((n) => n.sort_order))
 }

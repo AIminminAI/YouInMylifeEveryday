@@ -1,4 +1,4 @@
-import { ref, watch, type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import * as THREE from 'three'
 import gsap from 'gsap'
 import type { TimeNode } from '@/data/timelineData'
@@ -13,7 +13,7 @@ interface UseThreeSceneOptions {
 
 export function useThreeScene(options: UseThreeSceneOptions) {
   const { container, nodes, onNodeChange, onPaywallRequired } = options
-  const { isNodeLocked, canExportVideo, isFree, isPaid, currentPlan } = useSubscription()
+  const { isFree } = useSubscription()
 
   let scene: THREE.Scene
   let camera: THREE.PerspectiveCamera
@@ -21,10 +21,8 @@ export function useThreeScene(options: UseThreeSceneOptions) {
   let spiralCurve: THREE.CatmullRomCurve3
   let nodeMeshes: THREE.Mesh[] = []
   let nodeLights: THREE.PointLight[] = []
-  let nodeGlows: THREE.Mesh[] = [] // 发光光晕
-  let nodeRings: THREE.Mesh[] = [] // 锁定环
-  let nodeLockSprites: THREE.Sprite[] = [] // 锁图标
-  let nodeYearSprites: THREE.Sprite[] = [] // 年份标签
+  let nodeGlows: THREE.Mesh[] = []
+  let nodeYearSprites: THREE.Sprite[] = []
   let starField: THREE.Points
   let animationId: number
   let raycaster: THREE.Raycaster
@@ -48,15 +46,14 @@ export function useThreeScene(options: UseThreeSceneOptions) {
   let autoPlayProgress = 0
   let autoPlayPaused = false
   let autoPlayWaitTimer: number | null = null
-  const AUTO_PLAY_SPEED = 0.015 // 每秒前进的进度
-  const AUTO_PLAY_NODE_WAIT = 3000 // 到达节点后停留时间(ms)
+  const AUTO_PLAY_SPEED = 0.015
+  const AUTO_PLAY_NODE_WAIT = 3000
 
   // 视频录制
   let mediaRecorder: MediaRecorder | null = null
   let recordedChunks: Blob[] = []
   let isRecording = false
   let recordingCheckInterval: number | null = null
-  // 离屏渲染器（纯净录制，不含 UI）
   let offscreenRenderer: THREE.WebGLRenderer | null = null
   let offscreenCamera: THREE.PerspectiveCamera | null = null
 
@@ -139,15 +136,6 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     setTimeout(() => {
       startCinematicIntro()
     }, 500)
-
-    // 监听付费状态变化，更新场景
-    watch(currentPlan, () => {
-      updateNodeVisualsAfterPayment()
-      // 付费后恢复自动播放
-      if (isPaid.value && !isAutoPlaying) {
-        startAutoPlay()
-      }
-    })
   }
 
   // ========== 开场飞入 ==========
@@ -203,22 +191,12 @@ export function useThreeScene(options: UseThreeSceneOptions) {
   function updateAutoPlay(delta: number) {
     if (!isAutoPlaying || autoPlayPaused || isAnimating) return
 
-    // 免费版：到第3个节点后停止
-    const maxFreeProgress = isFree.value
-      ? nodes[Math.min(2, nodes.length - 1)].curvePosition + 0.02
-      : 1.0
-
     autoPlayProgress += delta * AUTO_PLAY_SPEED
 
-    if (autoPlayProgress >= maxFreeProgress) {
-      autoPlayProgress = maxFreeProgress
+    if (autoPlayProgress >= 1.0) {
+      autoPlayProgress = 1.0
       isAutoPlaying = false
       isPlaying.value = false
-
-      // 免费版到顶了，触发付费弹窗
-      if (isFree.value) {
-        onPaywallRequired('node')
-      }
     }
 
     cameraProgress = autoPlayProgress
@@ -229,7 +207,6 @@ export function useThreeScene(options: UseThreeSceneOptions) {
       const nodeT = nodes[i].curvePosition
       const dist = Math.abs(autoPlayProgress - nodeT)
       if (dist < 0.005 && i > currentNodeIndex) {
-        // 到达新节点，短暂停留
         autoPlayPaused = true
         currentNodeIndex = i
         onNodeChange(i)
@@ -389,7 +366,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     scene.add(new THREE.Mesh(outerTubeGeometry, outerTubeMaterial))
   }
 
-  // ========== 时光节点 ==========
+  // ========== 时光节点（无锁定逻辑，所有节点均可访问） ==========
   function createNodeSpheres() {
     const nodeColors = [
       new THREE.Color(0x00d4ff), new THREE.Color(0x4ade80),
@@ -398,106 +375,63 @@ export function useThreeScene(options: UseThreeSceneOptions) {
       new THREE.Color(0x34d399), new THREE.Color(0x8b5cf6),
       new THREE.Color(0x38bdf8), new THREE.Color(0xe879f9),
     ]
-    const lockedColor = new THREE.Color(0x333344)
 
     nodes.forEach((node, index) => {
       const t = node.curvePosition
       const position = spiralCurve.getPointAt(t)
-      const locked = isNodeLocked(index)
-      const color = locked ? lockedColor : nodeColors[index % nodeColors.length]
+      const color = nodeColors[index % nodeColors.length]
 
       const sphereGeo = new THREE.SphereGeometry(0.35, 32, 32)
       const sphereMat = new THREE.MeshStandardMaterial({
         color,
-        emissive: locked ? lockedColor : nodeColors[index % nodeColors.length],
-        emissiveIntensity: locked ? 0.2 : 0.8,
+        emissive: nodeColors[index % nodeColors.length],
+        emissiveIntensity: 0.8,
         metalness: 0.3,
-        roughness: locked ? 0.8 : 0.2,
-        transparent: locked,
-        opacity: locked ? 0.5 : 1.0,
+        roughness: 0.2,
       })
       const sphere = new THREE.Mesh(sphereGeo, sphereMat)
       sphere.position.copy(position)
-      sphere.userData = { nodeIndex: index, locked }
+      sphere.userData = { nodeIndex: index }
       scene.add(sphere)
       nodeMeshes.push(sphere)
 
-      // 锁定节点：显示锁图标 + 虚线环；解锁节点：发光光晕
-      if (locked) {
-        // 锁定环
-        const ringGeo = new THREE.TorusGeometry(0.6, 0.03, 16, 32)
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: 0x555566,
-          transparent: true,
-          opacity: 0.4,
-        })
-        const ring = new THREE.Mesh(ringGeo, ringMat)
-        ring.position.copy(position)
-        ring.rotation.x = Math.PI / 2
-        scene.add(ring)
+      // 发光光晕
+      const glowGeo = new THREE.SphereGeometry(0.7, 32, 32)
+      const glowMat = new THREE.ShaderMaterial({
+        uniforms: {
+          uColor: { value: nodeColors[index % nodeColors.length] },
+          uTime: { value: 0 }, uIndex: { value: index },
+        },
+        vertexShader: `
+          varying vec3 vNormal;
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 uColor;
+          uniform float uTime;
+          uniform float uIndex;
+          varying vec3 vNormal;
+          void main() {
+            float intensity = pow(0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+            float pulse = sin(uTime * 3.0 + uIndex * 1.5) * 0.2 + 0.8;
+            gl_FragColor = vec4(uColor, intensity * pulse * 0.6);
+          }
+        `,
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
+      })
+      const glowSphere = new THREE.Mesh(glowGeo, glowMat)
+      glowSphere.position.copy(position)
+      scene.add(glowSphere)
+      nodeGlows.push(glowSphere)
 
-        // 锁标签
-        const lockCanvas = document.createElement('canvas')
-        lockCanvas.width = 128
-        lockCanvas.height = 128
-        const lockCtx = lockCanvas.getContext('2d')!
-        lockCtx.fillStyle = 'transparent'
-        lockCtx.fillRect(0, 0, 128, 128)
-        lockCtx.font = '64px sans-serif'
-        lockCtx.fillStyle = '#555566'
-        lockCtx.textAlign = 'center'
-        lockCtx.textBaseline = 'middle'
-        lockCtx.fillText('🔒', 64, 64)
-
-        const lockTexture = new THREE.CanvasTexture(lockCanvas)
-        const lockSpriteMat = new THREE.SpriteMaterial({
-          map: lockTexture,
-          transparent: true,
-          depthWrite: false,
-          opacity: 0.6,
-        })
-        const lockSprite = new THREE.Sprite(lockSpriteMat)
-        lockSprite.position.copy(position.clone().add(new THREE.Vector3(0, 0.8, 0)))
-        lockSprite.scale.set(1, 1, 1)
-        scene.add(lockSprite)
-      } else {
-        // 发光光晕
-        const glowGeo = new THREE.SphereGeometry(0.7, 32, 32)
-        const glowMat = new THREE.ShaderMaterial({
-          uniforms: {
-            uColor: { value: nodeColors[index % nodeColors.length] },
-            uTime: { value: 0 }, uIndex: { value: index },
-          },
-          vertexShader: `
-            varying vec3 vNormal;
-            void main() {
-              vNormal = normalize(normalMatrix * normal);
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-          `,
-          fragmentShader: `
-            uniform vec3 uColor;
-            uniform float uTime;
-            uniform float uIndex;
-            varying vec3 vNormal;
-            void main() {
-              float intensity = pow(0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-              float pulse = sin(uTime * 3.0 + uIndex * 1.5) * 0.2 + 0.8;
-              gl_FragColor = vec4(uColor, intensity * pulse * 0.6);
-            }
-          `,
-          transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
-        })
-        const glowSphere = new THREE.Mesh(glowGeo, glowMat)
-        glowSphere.position.copy(position)
-        scene.add(glowSphere)
-      }
-
-      // 点光源（锁定节点光更暗）
+      // 点光源
       const light = new THREE.PointLight(
-        locked ? 0x333344 : nodeColors[index % nodeColors.length],
-        locked ? 0.3 : 2,
-        locked ? 5 : 15,
+        nodeColors[index % nodeColors.length],
+        2,
+        15,
       )
       light.position.copy(position)
       scene.add(light)
@@ -511,10 +445,10 @@ export function useThreeScene(options: UseThreeSceneOptions) {
       ctx.fillStyle = 'transparent'
       ctx.fillRect(0, 0, 256, 64)
       ctx.font = 'bold 36px "Noto Sans SC", sans-serif'
-      ctx.fillStyle = locked ? '#555566' : '#ffffff'
+      ctx.fillStyle = '#ffffff'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText(locked ? '???' : String(node.year), 128, 32)
+      ctx.fillText(String(node.year), 128, 32)
 
       const texture = new THREE.CanvasTexture(canvas)
       const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false })
@@ -523,122 +457,6 @@ export function useThreeScene(options: UseThreeSceneOptions) {
       sprite.scale.set(2.5, 0.6, 1)
       scene.add(sprite)
       nodeYearSprites.push(sprite)
-    })
-  }
-
-  // ========== 付费后更新节点视觉 ==========
-  function updateNodeVisualsAfterPayment() {
-    if (!scene) return
-    const nodeColors = [
-      new THREE.Color(0x00d4ff), new THREE.Color(0x4ade80),
-      new THREE.Color(0xfbbf24), new THREE.Color(0xf97316),
-      new THREE.Color(0xfb7185), new THREE.Color(0xffd700),
-      new THREE.Color(0x34d399), new THREE.Color(0x8b5cf6),
-      new THREE.Color(0x38bdf8), new THREE.Color(0xe879f9),
-    ]
-
-    nodes.forEach((node, index) => {
-      const wasLocked = index >= 3 // 之前是锁定的
-      const nowLocked = isNodeLocked(index)
-
-      if (wasLocked && !nowLocked) {
-        // 解锁节点
-        const color = nodeColors[index % nodeColors.length]
-        const position = spiralCurve.getPointAt(node.curvePosition)
-
-        // 更新球体材质
-        const mesh = nodeMeshes[index]
-        if (mesh) {
-          const mat = mesh.material as THREE.MeshStandardMaterial
-          mat.color.copy(color)
-          mat.emissive.copy(color)
-          mat.emissiveIntensity = 0.8
-          mat.roughness = 0.2
-          mat.transparent = false
-          mat.opacity = 1.0
-          mesh.userData.locked = false
-        }
-
-        // 移除锁定环
-        if (nodeRings[index]) {
-          scene.remove(nodeRings[index])
-          nodeRings[index].geometry.dispose()
-          ;(nodeRings[index].material as THREE.Material).dispose()
-          nodeRings[index] = null as any
-        }
-
-        // 移除锁图标
-        if (nodeLockSprites[index]) {
-          scene.remove(nodeLockSprites[index])
-          nodeLockSprites[index].material.dispose()
-          ;(nodeLockSprites[index].material as THREE.SpriteMaterial).map?.dispose()
-          nodeLockSprites[index] = null as any
-        }
-
-        // 添加发光光晕
-        const glowGeo = new THREE.SphereGeometry(0.7, 32, 32)
-        const glowMat = new THREE.ShaderMaterial({
-          uniforms: {
-            uColor: { value: color },
-            uTime: { value: 0 }, uIndex: { value: index },
-          },
-          vertexShader: `
-            varying vec3 vNormal;
-            void main() {
-              vNormal = normalize(normalMatrix * normal);
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-          `,
-          fragmentShader: `
-            uniform vec3 uColor;
-            uniform float uTime;
-            uniform float uIndex;
-            varying vec3 vNormal;
-            void main() {
-              float intensity = pow(0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-              float pulse = sin(uTime * 3.0 + uIndex * 1.5) * 0.2 + 0.8;
-              gl_FragColor = vec4(uColor, intensity * pulse * 0.6);
-            }
-          `,
-          transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
-        })
-        const glowSphere = new THREE.Mesh(glowGeo, glowMat)
-        glowSphere.position.copy(position)
-        scene.add(glowSphere)
-        nodeGlows[index] = glowSphere
-
-        // 更新点光源
-        if (nodeLights[index]) {
-          nodeLights[index].color.copy(color)
-          nodeLights[index].intensity = 2
-          nodeLights[index].distance = 15
-        }
-
-        // 更新年份标签
-        if (nodeYearSprites[index]) {
-          scene.remove(nodeYearSprites[index])
-          nodeYearSprites[index].material.dispose()
-          ;(nodeYearSprites[index].material as THREE.SpriteMaterial).map?.dispose()
-        }
-        const canvas = document.createElement('canvas')
-        canvas.width = 256
-        canvas.height = 64
-        const ctx = canvas.getContext('2d')!
-        ctx.fillStyle = 'transparent'
-        ctx.fillRect(0, 0, 256, 64)
-        ctx.font = 'bold 36px "Noto Sans SC", sans-serif'
-        ctx.fillStyle = '#ffffff'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(String(node.year), 128, 32)
-        const texture = new THREE.CanvasTexture(canvas)
-        const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false })
-        const sprite = new THREE.Sprite(spriteMat)
-        sprite.position.copy(position.clone().add(new THREE.Vector3(0, 1.2, 0)))
-        sprite.scale.set(2.5, 0.6, 1)
-        scene.add(sprite)
-        nodeYearSprites[index] = sprite
-      }
     })
   }
 
@@ -652,12 +470,6 @@ export function useThreeScene(options: UseThreeSceneOptions) {
   // ========== 摄像机动画 ==========
   function moveCameraToNode(index: number) {
     if (index < 0 || index >= nodes.length) return
-
-    // 检查节点是否锁定
-    if (isNodeLocked(index)) {
-      onPaywallRequired('node')
-      return
-    }
 
     // 手动操作时暂停自动播放
     pauseAutoPlay()
@@ -808,11 +620,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     if (intersects.length > 0) {
       const nodeIndex = intersects[0].object.userData.nodeIndex as number
       if (nodeIndex !== undefined) {
-        if (isNodeLocked(nodeIndex)) {
-          onPaywallRequired('node')
-        } else {
-          moveCameraToNode(nodeIndex)
-        }
+        moveCameraToNode(nodeIndex)
       }
     }
   }
@@ -870,13 +678,9 @@ export function useThreeScene(options: UseThreeSceneOptions) {
       mesh.scale.setScalar(1 + Math.sin(time * 2 + i * 1.2) * 0.1)
     })
 
-    // 节点光源脉冲（锁定节点保持暗淡）
+    // 节点光源脉冲
     nodeLights.forEach((light, i) => {
-      if (isNodeLocked(i)) {
-        light.intensity = 0.3 + Math.sin(time * 3 + i * 1.5) * 0.1
-      } else {
-        light.intensity = 2 + Math.sin(time * 3 + i * 1.5) * 0.8
-      }
+      light.intensity = 2 + Math.sin(time * 3 + i * 1.5) * 0.8
     })
 
     if (starField) starField.rotation.y = time * 0.01
@@ -884,7 +688,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     renderer.render(scene, camera)
   }
 
-  // ========== 截图导出 ==========
+  // ========== 截图导出（免费版无水印） ==========
   function exportScreenshot() {
     const originalPixelRatio = renderer.getPixelRatio()
     renderer.setPixelRatio(originalPixelRatio * 2)
@@ -895,14 +699,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     renderer.setPixelRatio(originalPixelRatio)
     renderer.setSize(container.value!.clientWidth, container.value!.clientHeight)
 
-    // 免费版加水印（异步等待图片加载）
-    if (isFree.value) {
-      addWatermarkAsync(dataUrl).then((watermarkedUrl) => {
-        downloadImage(watermarkedUrl)
-      })
-    } else {
-      downloadImage(dataUrl)
-    }
+    downloadImage(dataUrl)
   }
 
   function downloadImage(dataUrl: string) {
@@ -912,49 +709,11 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     link.click()
   }
 
-  function addWatermarkAsync(dataUrl: string): Promise<string> {
-    return new Promise((resolve) => {
-      const img = new Image()
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        canvas.width = img.width
-        canvas.height = img.height
-        const ctx = canvas.getContext('2d')!
-
-        ctx.drawImage(img, 0, 0)
-
-        // 半透明水印条
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'
-        ctx.fillRect(0, canvas.height - 60, canvas.width, 60)
-
-        // 水印文字
-        ctx.font = `bold ${Math.round(canvas.width * 0.018)}px "Noto Sans SC", sans-serif`
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText('生命星轨 · 免费版', canvas.width / 2, canvas.height - 35)
-
-        // 小字
-        ctx.font = `${Math.round(canvas.width * 0.01)}px "Noto Sans SC", sans-serif`
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
-        ctx.fillText('升级完整版去除水印 → starorbit.app', canvas.width / 2, canvas.height - 14)
-
-        resolve(canvas.toDataURL('image/png', 1.0))
-      }
-      img.src = dataUrl
-    })
-  }
-
   // ========== 视频录制导出 ==========
   function startVideoExport() {
     if (isRecording) return
 
-    // 免费版不能导出视频
-    if (!canExportVideo()) {
-      onPaywallRequired('export-video')
-      return
-    }
-
+    // 免费版可以导出视频，但带水印
     isRecording = true
     isExportingVideo.value = true
     exportProgress.value = 0
@@ -974,7 +733,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     offscreenRenderer.toneMapping = THREE.ACESFilmicToneMapping
     offscreenRenderer.toneMappingExposure = 1.2
 
-    // 离屏摄像机（复制主摄像机参数，适配新宽高比）
+    // 离屏摄像机
     offscreenCamera = new THREE.PerspectiveCamera(60, exportWidth / exportHeight, 0.1, 1000)
 
     // 从头开始自动播放并录制
@@ -989,7 +748,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     // 获取离屏 canvas 流，30fps
     const stream = offscreenRenderer.domElement.captureStream(30)
 
-    // 格式兼容性检测（按优先级）
+    // 格式兼容性检测
     const mimeTypes = [
       'video/webm;codecs=vp9',
       'video/webm;codecs=vp8',
@@ -1013,12 +772,14 @@ export function useThreeScene(options: UseThreeSceneOptions) {
 
     mediaRecorder = new MediaRecorder(stream, {
       mimeType: selectedMime,
-      videoBitsPerSecond: 16000000, // 16Mbps 高码率
+      videoBitsPerSecond: 16000000,
     })
 
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) recordedChunks.push(e.data)
     }
+
+    const shouldAddWatermark = isFree.value
 
     mediaRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: selectedMime })
@@ -1031,16 +792,19 @@ export function useThreeScene(options: UseThreeSceneOptions) {
       URL.revokeObjectURL(url)
 
       cleanupRecording()
+
+      // 免费版导出视频后提示可升级去水印
+      if (shouldAddWatermark) {
+        onPaywallRequired('export-video')
+      }
     }
 
-    // 每 100ms 请求一次数据，减少丢帧
     mediaRecorder.start(100)
 
-    // 离屏渲染循环：同步主摄像机位置到离屏摄像机
+    // 离屏渲染循环
     function renderOffscreen() {
       if (!isRecording || !offscreenRenderer || !offscreenCamera) return
 
-      // 同步摄像机
       offscreenCamera.position.copy(camera.position)
       offscreenCamera.quaternion.copy(camera.quaternion)
       offscreenCamera.aspect = 1920 / 1080
@@ -1061,7 +825,6 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     recordingCheckInterval = window.setInterval(() => {
       if (!isAutoPlaying && autoPlayProgress >= 0.99) {
         if (recordingCheckInterval) clearInterval(recordingCheckInterval)
-        // 多等2秒让最后画面停留
         setTimeout(() => {
           if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop()

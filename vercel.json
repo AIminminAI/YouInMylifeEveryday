@@ -1,6 +1,8 @@
 {
   "rewrites": [
+    { "source": "/api/pay", "destination": "/api/pay.ts" },
     { "source": "/api/pay/:action", "destination": "/api/pay.ts?action=:action" },
+    { "source": "/api/timeline", "destination": "/api/timeline.ts" },
     { "source": "/api/timeline/:action", "destination": "/api/timeline.ts?action=:action" },
     { "source": "/((?!api/).*)", "destination": "/" }
   ],

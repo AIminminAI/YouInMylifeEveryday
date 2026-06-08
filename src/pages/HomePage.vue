@@ -18,7 +18,7 @@ const activeNodeIndex = ref(0)
 const cardVisible = ref(false)
 
 // 付费状态
-const { isFree, isPaid, isNodeLocked } = useSubscription()
+const { isFree, isPaid } = useSubscription()
 const showPaywall = ref(false)
 const paywallTrigger = ref<'node' | 'export-video' | 'export-hd' | 'skin'>('node')
 
@@ -65,30 +65,14 @@ function handleExportImage() {
 }
 
 function handleExportVideo() {
-  if (isFree.value) {
-    showPaywall.value = true
-    paywallTrigger.value = 'export-video'
-    return
-  }
   startVideoExport()
 }
 
 function handleNavGoto(index: number) {
-  if (isNodeLocked(index)) {
-    showPaywall.value = true
-    paywallTrigger.value = 'node'
-    return
-  }
   goToNode(index)
 }
 
 function handleNavNext() {
-  const nextIdx = activeNodeIndex.value + 1
-  if (isNodeLocked(nextIdx)) {
-    showPaywall.value = true
-    paywallTrigger.value = 'node'
-    return
-  }
   nextNode()
 }
 </script>
@@ -130,7 +114,7 @@ function handleNavNext() {
           class="text-[10px] text-[#00d4ff]/70 hover:text-[#00d4ff] transition-colors font-body"
           @click="showPaywall = true; paywallTrigger = 'node'"
         >
-          解锁完整版
+          升级高级版
         </button>
       </div>
     </div>
@@ -172,7 +156,6 @@ function handleNavNext() {
     <NavControls
       :current-index="activeNodeIndex"
       :total-nodes="timelineData.nodes.length"
-      :free-limit="isFree ? 3 : -1"
       @prev="prevNode"
       @next="handleNavNext"
       @goto="handleNavGoto"
