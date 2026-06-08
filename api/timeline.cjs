@@ -28,7 +28,7 @@ function generateDescription(year, title) {
   return '那是' + y + '年的故事，时光在那一刻定格，成为星轨上永恒的光点。'
 }
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')

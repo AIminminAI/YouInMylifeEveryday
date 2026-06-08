@@ -1,11 +1,11 @@
-import {
+const {
   createOrderRecord,
   findOrderByIdAndUser,
   updateOrderStatus,
   updateUserPlan,
   findOrderById,
   findUserById,
-} from './_db.js'
+} = require('./_db.cjs')
 
 const PRICES = {
   full: { amount: 1990, label: '高级版 ¥19.9' },
@@ -16,7 +16,7 @@ function simpleId() {
   return 'xxxx-xxxx-xxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16))
 }
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
