@@ -1,28 +1,29 @@
-const {
+import type { VercelRequest, VercelResponse } from '@vercel/node'
+import {
   createOrderRecord,
   findOrderByIdAndUser,
   updateOrderStatus,
   updateUserPlan,
   findOrderById,
   findUserById,
-} = require('./_db.cjs')
+} from './_db.js'
 
-const PRICES = {
+const PRICES: Record<string, { amount: number; label: string }> = {
   full: { amount: 1990, label: '高级版 ¥19.9' },
   premium: { amount: 9900, label: '纪念版 ¥99' },
 }
 
-function simpleId() {
+function simpleId(): string {
   return 'xxxx-xxxx-xxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16))
 }
 
-module.exports = function handler(req, res) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   if (req.method === 'OPTIONS') return res.status(200).end()
 
-  const action = req.query.action
+  const action = req.query.action as string
 
   try {
     if (action === 'create-order' && req.method === 'POST') {
@@ -57,7 +58,7 @@ module.exports = function handler(req, res) {
     }
 
     if (action === 'order-status') {
-      const id = req.query.id
+      const id = req.query.id as string
       if (!id) return res.status(400).json({ error: '缺少 ID' })
       const order = findOrderById(id)
       if (!order) return res.status(404).json({ error: '订单不存在' })
@@ -65,7 +66,7 @@ module.exports = function handler(req, res) {
     }
 
     if (action === 'user-status') {
-      const id = req.query.id
+      const id = req.query.id as string
       if (!id) return res.status(400).json({ error: '缺少 ID' })
       const user = findUserById(id)
       return res.json({ plan: user ? user.plan : 'free', isPaid: !!(user && user.plan !== 'free') })
