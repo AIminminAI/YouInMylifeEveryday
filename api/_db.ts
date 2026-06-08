@@ -141,7 +141,7 @@ export function updateUserPlan(userId: string, plan: string): void {
 
 // ========== 订单操作 ==========
 
-export function createOrder(order: OrderData): void {
+export function createOrderRecord(order: OrderData): void {
   const db = getDB()
   db.orders[order.id] = order
   saveToFile()
