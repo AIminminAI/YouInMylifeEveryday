@@ -3,6 +3,8 @@ import {
   loadTimelineData,
   saveTimelineData,
   createDefaultData,
+  createTemplateData,
+  TEMPLATES,
   type TimeNode,
   type TimelineData,
 } from '@/data/timelineData'
@@ -17,6 +19,7 @@ describe('timelineData 数据层', () => {
     const data = createDefaultData()
     expect(data.nodes).toHaveLength(10)
     expect(data.title).toBe('生命星轨')
+    expect(data.templateId).toBe('life')
   })
 
   it('每个节点都有必要字段', () => {
@@ -66,16 +69,132 @@ describe('timelineData 数据层', () => {
   })
 })
 
-// ========== 2. 照片上传逻辑测试 ==========
+// ========== 2. 模板系统测试 ==========
+describe('模板系统', () => {
+  it('TEMPLATES 包含 6 个模板', () => {
+    expect(TEMPLATES).toHaveLength(6)
+  })
+
+  it('每个模板都有必要字段', () => {
+    TEMPLATES.forEach((t) => {
+      expect(t.id, `模板 ${t.name} 缺少 id`).toBeTruthy()
+      expect(t.name, `模板缺少 name`).toBeTruthy()
+      expect(t.subtitle, `模板 ${t.name} 缺少 subtitle`).toBeTruthy()
+      expect(t.description, `模板 ${t.name} 缺少 description`).toBeTruthy()
+      expect(t.preview, `模板 ${t.name} 缺少 preview`).toBeTruthy()
+      expect(t.tag, `模板 ${t.name} 缺少 tag`).toBeTruthy()
+    })
+  })
+
+  it('每个模板 ID 唯一', () => {
+    const ids = TEMPLATES.map(t => t.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  const templateIds = ['life', 'wedding', 'pet', 'graduation', 'solo', 'parents']
+
+  templateIds.forEach((id) => {
+    describe(`模板 "${id}"`, () => {
+      it(`createTemplateData('${id}') 返回 10 个节点`, () => {
+        const data = createTemplateData(id)
+        expect(data.nodes).toHaveLength(10)
+        expect(data.templateId).toBe(id)
+      })
+
+      it(`每个节点都有必要字段且文案不为空`, () => {
+        const data = createTemplateData(id)
+        data.nodes.forEach((node, i) => {
+          expect(node.id, `${id} 节点 ${i} 缺少 id`).toBeTruthy()
+          expect(typeof node.year, `${id} 节点 ${i} year 不是数字`).toBe('number')
+          expect(node.title, `${id} 节点 ${i} 缺少 title`).toBeTruthy()
+          expect(node.description, `${id} 节点 ${i} 缺少 description`).toBeTruthy()
+          expect(node.description.length, `${id} 节点 ${i} description 太短（<10字）`).toBeGreaterThanOrEqual(10)
+          expect(typeof node.curvePosition, `${id} 节点 ${i} curvePosition 不是数字`).toBe('number')
+          expect(node.gradient, `${id} 节点 ${i} 缺少 gradient`).toBeTruthy()
+        })
+      })
+
+      it(`curvePosition 从 0 到 1 递增`, () => {
+        const data = createTemplateData(id)
+        expect(data.nodes[0].curvePosition).toBe(0)
+        expect(data.nodes[data.nodes.length - 1].curvePosition).toBe(1)
+        for (let i = 1; i < data.nodes.length; i++) {
+          expect(
+            data.nodes[i].curvePosition >= data.nodes[i - 1].curvePosition,
+            `${id} 节点 ${i} curvePosition 应 >= 前一个`
+          ).toBe(true)
+        }
+      })
+
+      it(`标题和副标题不为空`, () => {
+        const data = createTemplateData(id)
+        expect(data.title.length).toBeGreaterThan(0)
+        expect(data.subtitle.length).toBeGreaterThan(0)
+      })
+    })
+  })
+
+  it('未知模板 ID 返回默认模板', () => {
+    const data = createTemplateData('unknown')
+    expect(data.templateId).toBe('life')
+  })
+})
+
+// ========== 3. 模板文案情感质量测试 ==========
+describe('模板文案情感质量', () => {
+  it('孤独模板包含真实痛点场景', () => {
+    const data = createTemplateData('solo')
+    const descriptions = data.nodes.map(n => n.description).join(' ')
+    // 必须包含至少 2 个真实痛点关键词
+    const painPoints = ['生病', '除夕', '通讯录', '崩溃', '外卖']
+    const matched = painPoints.filter(p => descriptions.includes(p))
+    expect(matched.length, `孤独模板应包含至少2个痛点，实际: ${matched}`).toBeGreaterThanOrEqual(2)
+  })
+
+  it('父母模板包含代际情感细节', () => {
+    const data = createTemplateData('parents')
+    const descriptions = data.nodes.map(n => n.description).join(' ')
+    const emotionalKeywords = ['手', '眼泪', '电话', '白发', '牵手', '忘了']
+    const matched = emotionalKeywords.filter(k => descriptions.includes(k))
+    expect(matched.length, `父母模板应包含至少3个情感细节，实际: ${matched}`).toBeGreaterThanOrEqual(3)
+  })
+
+  it('宠物模板包含告别场景', () => {
+    const data = createTemplateData('pet')
+    const titles = data.nodes.map(n => n.title)
+    expect(titles).toContain('告别')
+  })
+
+  it('婚礼模板包含婚礼场景', () => {
+    const data = createTemplateData('wedding')
+    const titles = data.nodes.map(n => n.title)
+    expect(titles).toContain('婚礼')
+  })
+
+  it('毕业模板包含散伙和离校场景', () => {
+    const data = createTemplateData('graduation')
+    const titles = data.nodes.map(n => n.title)
+    expect(titles).toContain('散伙饭')
+    expect(titles).toContain('离校')
+  })
+
+  it('每个模板的文案平均长度 > 15字（不是敷衍的短句）', () => {
+    TEMPLATES.forEach(t => {
+      const data = createTemplateData(t.id)
+      const avgLen = data.nodes.reduce((sum, n) => sum + n.description.length, 0) / data.nodes.length
+      expect(avgLen, `模板 "${t.name}" 文案平均长度 ${avgLen.toFixed(0)} 字，太短`).toBeGreaterThanOrEqual(15)
+    })
+  })
+})
+
+// ========== 4. 照片上传逻辑测试 ==========
 describe('照片上传流程', () => {
   it('压缩图片生成 base64 格式', () => {
-    // jsdom 不支持 canvas，直接测试 base64 格式
     const fakeBase64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ'
     expect(fakeBase64).toMatch(/^data:image\/jpeg;base64,/)
   })
 
   it('大图片压缩逻辑正确', () => {
-    // 纯数学测试，不依赖 canvas
     const maxSize = 800
     const testCases = [
       { w: 1600, h: 1200, expectedW: 800, expectedH: 600 },
@@ -110,7 +229,6 @@ describe('照片上传流程', () => {
     data.nodes[0].userPhoto = 'data:image/jpeg;base64,FAKE'
     saveTimelineData(data)
 
-    // 模拟移除操作
     data.nodes[0].userPhoto = ''
     saveTimelineData(data)
 
@@ -119,7 +237,7 @@ describe('照片上传流程', () => {
   })
 })
 
-// ========== 3. 文案编辑逻辑测试 ==========
+// ========== 5. 文案编辑逻辑测试 ==========
 describe('文案编辑流程', () => {
   it('编辑标题并保存', () => {
     const data = loadTimelineData()
@@ -153,7 +271,6 @@ describe('文案编辑流程', () => {
   it('空标题不覆盖原标题', () => {
     const data = loadTimelineData()
     const original = data.nodes[0].title
-    // 模拟前端逻辑：空值不覆盖
     const newTitle = ''
     data.nodes[0].title = newTitle || original
     saveTimelineData(data)
@@ -168,7 +285,6 @@ describe('文案编辑流程', () => {
     data.nodes[0].userPhoto = 'data:image/jpeg;base64,FAKE'
     saveTimelineData(data)
 
-    // 重置
     const fresh = createDefaultData()
     const resetData: TimelineData = {
       title: fresh.title,
@@ -184,10 +300,45 @@ describe('文案编辑流程', () => {
   })
 })
 
-// ========== 4. API 接口测试 ==========
+// ========== 6. 模板切换流程测试 ==========
+describe('模板切换流程', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('切换到宠物模板后数据正确', () => {
+    const data = createTemplateData('pet')
+    saveTimelineData(data)
+
+    const loaded = loadTimelineData()
+    expect(loaded.templateId).toBe('pet')
+    expect(loaded.title).toBe('你是我的小星球')
+    expect(loaded.nodes[0].title).toBe('初遇')
+  })
+
+  it('切换到父母模板后数据正确', () => {
+    const data = createTemplateData('parents')
+    saveTimelineData(data)
+
+    const loaded = loadTimelineData()
+    expect(loaded.templateId).toBe('parents')
+    expect(loaded.title).toBe('致我深爱的你')
+  })
+
+  it('切换模板后上传照片保留', () => {
+    const data = createTemplateData('solo')
+    data.nodes[0].userPhoto = 'data:image/jpeg;base64,FAKE'
+    saveTimelineData(data)
+
+    const loaded = loadTimelineData()
+    expect(loaded.templateId).toBe('solo')
+    expect(loaded.nodes[0].userPhoto).toBe('data:image/jpeg;base64,FAKE')
+  })
+})
+
+// ========== 7. API 接口测试 ==========
 describe('API 接口', () => {
   it('createOrder 返回必要字段', async () => {
-    // 模拟 fetch
     const mockResponse = {
       orderId: 'test-order-123',
       amount: 1990,
@@ -237,7 +388,7 @@ describe('API 接口', () => {
   })
 })
 
-// ========== 5. 付费状态测试 ==========
+// ========== 8. 付费状态测试 ==========
 describe('付费状态管理', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -255,15 +406,14 @@ describe('付费状态管理', () => {
   })
 
   it('所有节点均不锁定', () => {
-    // 免费版所有节点可访问
     const data = createDefaultData()
     data.nodes.forEach((_, i) => {
-      expect(i).toBeLessThan(10) // 所有 10 个节点
+      expect(i).toBeLessThan(10)
     })
   })
 })
 
-// ========== 6. 截图/视频导出逻辑测试 ==========
+// ========== 9. 截图/视频导出逻辑测试 ==========
 describe('导出功能', () => {
   it('截图文件名格式正确', () => {
     const now = new Date()
@@ -278,7 +428,6 @@ describe('导出功能', () => {
   })
 
   it('MediaRecorder 格式检测逻辑', () => {
-    // jsdom 没有 MediaRecorder，用纯逻辑测试
     const supportedMimes = new Set([
       'video/webm;codecs=vp9',
       'video/webm;codecs=vp8',
@@ -305,14 +454,13 @@ describe('导出功能', () => {
   })
 })
 
-// ========== 7. 边界情况测试 ==========
+// ========== 10. 边界情况测试 ==========
 describe('边界情况', () => {
   it('localStorage 满时不崩溃', () => {
     const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new DOMException('QuotaExceededError')
     })
 
-    // saveTimelineData 应该静默失败不崩溃
     const data = createDefaultData()
     expect(() => saveTimelineData(data)).not.toThrow()
 
@@ -328,26 +476,23 @@ describe('边界情况', () => {
   it('空节点数组时 loadTimelineData 返回默认数据', () => {
     localStorage.setItem('starorbit_timeline', JSON.stringify({ title: 'test', nodes: [] }))
     const data = loadTimelineData()
-    // 空数组时应该返回默认数据
     expect(data.nodes.length).toBeGreaterThan(0)
   })
 })
 
-// ========== 8. 断点恢复测试 ==========
+// ========== 11. 断点恢复测试 ==========
 describe('断点恢复机制', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
   it('编辑文案后刷新页面，数据自动恢复', () => {
-    // 模拟用户编辑
     const data = createDefaultData()
     data.nodes[0].title = '我的出生'
     data.nodes[0].description = '1995年春天出生'
     data.nodes[0].year = 1995
     saveTimelineData(data)
 
-    // 模拟页面刷新：重新加载
     const restored = loadTimelineData()
     expect(restored.nodes[0].title).toBe('我的出生')
     expect(restored.nodes[0].description).toBe('1995年春天出生')
@@ -376,10 +521,8 @@ describe('断点恢复机制', () => {
     saveTimelineData(data)
 
     const restored = loadTimelineData()
-    // 修改的节点保留
     expect(restored.nodes[0].title).toBe('修改的标题')
     expect(restored.nodes[5].userPhoto).toBe('data:image/jpeg;base64,FAKE')
-    // 未修改的节点保持默认
     expect(restored.nodes[1].title).toBe('上学')
     expect(restored.nodes[3].title).toBe('工作')
   })
@@ -392,10 +535,9 @@ describe('断点恢复机制', () => {
 
   it('QuotaExceededError 时 trimLargestPhoto 清理最大照片', () => {
     const data = createDefaultData()
-    data.nodes[0].userPhoto = 'A'.repeat(1000) // 小照片
-    data.nodes[5].userPhoto = 'B'.repeat(5000) // 大照片
+    data.nodes[0].userPhoto = 'A'.repeat(1000)
+    data.nodes[5].userPhoto = 'B'.repeat(5000)
 
-    // 直接测试 trimLargestPhoto 逻辑
     let maxIdx = -1
     let maxSize = 0
     data.nodes.forEach((node, i) => {
@@ -406,18 +548,15 @@ describe('断点恢复机制', () => {
     })
     expect(maxIdx).toBe(5)
 
-    // 模拟清理
     data.nodes[maxIdx].userPhoto = ''
     expect(data.nodes[5].userPhoto).toBe('')
     expect(data.nodes[0].userPhoto).toBeTruthy()
   })
 
   it('照片压缩逻辑：超过 500KB 进一步压缩', () => {
-    // 模拟压缩判断逻辑
-    const base64Length = 700 * 1024 / 0.75 // 约 700KB 的 base64
+    const base64Length = 700 * 1024 / 0.75
     const sizeKB = Math.round(base64Length * 0.75 / 1024)
     expect(sizeKB).toBeGreaterThan(500)
-    // 触发进一步压缩
     const shouldCompressMore = sizeKB > 500
     expect(shouldCompressMore).toBe(true)
   })

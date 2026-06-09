@@ -21,7 +21,7 @@ export interface TemplateMeta {
   name: string
   subtitle: string
   description: string
-  preview: string // 渐变色预览
+  preview: string
   tag: string
 }
 
@@ -63,9 +63,17 @@ export const TEMPLATES: TemplateMeta[] = [
     id: 'solo',
     name: '一个人的宇宙',
     subtitle: '孤独不是缺憾，是我完整的星轨',
-    description: '与自己和解的每一步，都值得被记住',
+    description: '那些独自扛过的夜，都变成了星',
     preview: 'linear-gradient(135deg, #0a0a2e, #1a1a4e, #2d1b69)',
     tag: '独处',
+  },
+  {
+    id: 'parents',
+    name: '致我深爱的你',
+    subtitle: '你们把我养大，我陪你们变老',
+    description: '给爸妈的一封时光信',
+    preview: 'linear-gradient(135deg, #ffecd2, #fcb69f, #a18cd1)',
+    tag: '父母',
   },
 ]
 
@@ -88,6 +96,8 @@ export function createTemplateData(templateId: string): TimelineData {
       return createGraduationTemplate()
     case 'solo':
       return createSoloTemplate()
+    case 'parents':
+      return createParentsTemplate()
     default:
       return createDefaultData()
   }
@@ -124,7 +134,7 @@ function createWeddingTemplate(): TimelineData {
       {
         year: 2018,
         title: '初见',
-        description: '那天人很多，我只看见了你。世界突然安静，像宇宙只剩两颗星。',
+        description: '那天人很多，我只看见了你。你笑了一下，我的世界就安静了。',
         imageUrl: '',
         curvePosition: 0.0,
         gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
@@ -132,7 +142,7 @@ function createWeddingTemplate(): TimelineData {
       {
         year: 2018,
         title: '心动',
-        description: '明明只是普通的一句话，你说了，我记了很久。原来心动不是心跳加速，是突然想认真对待一个人。',
+        description: '你随口说了一句"早点睡"，我反复看了八遍。原来喜欢一个人，连标点符号都觉得是甜的。',
         imageUrl: '',
         curvePosition: 0.11,
         gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
@@ -140,23 +150,23 @@ function createWeddingTemplate(): TimelineData {
       {
         year: 2019,
         title: '在一起',
-        description: '没有轰轰烈烈的告白，只是某天散步时，你牵了我的手，我也没有放开。就这样，我们成了一对。',
+        description: '没有告白，没有鲜花。只是过马路的时候，你牵了我的手。过了马路，你也没松开。我也没抽回。',
         imageUrl: '',
         curvePosition: 0.22,
         gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       },
       {
         year: 2019,
-        title: '磨合',
-        description: '也吵过架，也红过眼。但每次想放弃的时候，你都在。后来我明白了——爱不是不吵架，是吵完了还想和你在一起。',
+        title: '第一次吵架',
+        description: '摔了门，走了。在楼下站了十分钟，又上来了。你开门的时候眼睛也是红的。我们都没说对不起，但都笑了。',
         imageUrl: '',
         curvePosition: 0.33,
         gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
       },
       {
         year: 2020,
-        title: '陪伴',
-        description: '疫情关住了门，你却打开了窗。一起做饭、一起追剧、一起发呆。原来和你在一起，什么都不做也很幸福。',
+        title: '困在一起',
+        description: '疫情关了门，你学会了做我爱的红烧肉，我学会了忍你打游戏。六十平的小屋，装下了整个世界。',
         imageUrl: '',
         curvePosition: 0.44,
         gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -164,7 +174,7 @@ function createWeddingTemplate(): TimelineData {
       {
         year: 2021,
         title: '求婚',
-        description: '没有直升机，没有大屏幕，只有你单膝跪地，说了一句：余生请多指教。我哭着点了头。',
+        description: '你单膝跪下的时候，手在抖。戒指套了三次才戴上。你说"余生请多指教"，我什么都没说出来，只是拚命点头。',
         imageUrl: '',
         curvePosition: 0.55,
         gradient: 'linear-gradient(135deg, #ff6b9d 0%, #c44dff 100%)',
@@ -172,7 +182,7 @@ function createWeddingTemplate(): TimelineData {
       {
         year: 2022,
         title: '婚礼',
-        description: '穿白纱的那一刻，我在人群中找你的眼睛。你也在看我，笑着，眼里有光。那是我见过最美的星空。',
+        description: '我挽着爸爸的手走向你，他把你手握得很紧，然后交给了我。他转身的时候，我看到了他的眼泪。',
         imageUrl: '',
         curvePosition: 0.66,
         gradient: 'linear-gradient(135deg, #6e3aff 0%, #c44dff 50%, #ff6b9d 100%)',
@@ -180,7 +190,7 @@ function createWeddingTemplate(): TimelineData {
       {
         year: 2023,
         title: '日常',
-        description: '柴米油盐里藏着浪漫：你帮我暖被窝，我给你留灯。平淡不是无趣，是安心。',
+        description: '你帮我吹头发，我给你剪指甲。冰箱上贴着买菜清单，上面画了个笑脸。这就是我们的浪漫。',
         imageUrl: '',
         curvePosition: 0.77,
         gradient: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
@@ -188,7 +198,7 @@ function createWeddingTemplate(): TimelineData {
       {
         year: 2025,
         title: '新生命',
-        description: '你握着我的手，比我还紧张。听到第一声啼哭，我们相视而笑——从此，我们的爱有了延续。',
+        description: '产房外你走来走去，护士出来你冲上去的样子，比任何时候都笨拙。你抱着她，说"像你"。我看着你们，觉得这辈子值了。',
         imageUrl: '',
         curvePosition: 0.88,
         gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
@@ -196,7 +206,7 @@ function createWeddingTemplate(): TimelineData {
       {
         year: 2070,
         title: '白头',
-        description: '头发白了，步子慢了。你还是会牵我的手，像第一次那样。我回头看你，你还是当年那个让我心动的人。',
+        description: '你忘了很多人很多事，但每天早上还是会帮我倒一杯温水。我坐在你旁边，你握着我的手，像五十年前过马路那样。',
         imageUrl: '',
         curvePosition: 1.0,
         gradient: 'linear-gradient(135deg, #0c3483 0%, #a2b6df 50%, #ffecd2 100%)',
@@ -222,8 +232,8 @@ function createPetTemplate(): TimelineData {
       },
       {
         year: 2019,
-        title: '回家',
-        description: '你缩在角落发抖，我轻声说别怕。那一晚你睡在我枕边，呼噜声很轻，却让我无比安心。',
+        title: '第一夜',
+        description: '你缩在角落发抖，我把你抱到枕边。你舔了舔我的手指，然后安心地闭上了眼。那一晚，我们都睡得很好。',
         imageUrl: '',
         curvePosition: 0.11,
         gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
@@ -231,23 +241,23 @@ function createPetTemplate(): TimelineData {
       {
         year: 2020,
         title: '闯祸',
-        description: '咬坏拖鞋、打翻花瓶、偷吃零食……你一脸无辜地看我，我气不起来。你大概也知道我气不起来。',
+        description: '咬坏了我最爱的拖鞋。我举起来要打你，你翻了个肚皮。我举着拖鞋愣了半天，最后笑了。',
         imageUrl: '',
         curvePosition: 0.22,
         gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
       },
       {
         year: 2020,
-        title: '陪伴',
-        description: '加班到深夜，你趴在脚边不走。我说"你去睡吧"，你抬头看我一眼，又趴下了。你什么都没说，但我没那么孤独了。',
+        title: '深夜',
+        description: '加班到凌晨，推开门，你在玄关等我。尾巴摇了两下，又困得站不稳。你等了我多久？你不会说，但我知道。',
         imageUrl: '',
         curvePosition: 0.33,
         gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
       },
       {
         year: 2021,
-        title: '治愈',
-        description: '最难的那段日子，是你陪我熬过来的。你不会说安慰的话，但你把头搁在我膝上，就已经够了。',
+        title: '最低谷',
+        description: '那段日子我谁都不想见。只有你，把头搁在我膝上，一搭一搭地呼吸。你没说"会好的"，但你一直在。',
         imageUrl: '',
         curvePosition: 0.44,
         gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -376,9 +386,9 @@ function createGraduationTemplate(): TimelineData {
         gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
       },
       {
-        year: 2070,
-        title: '重逢',
-        description: '如果有一天我们再聚，希望大家都过得好。不用像从前那样，只要坐在一起，就够了。',
+        year: 2030,
+        title: '好久不见',
+        description: '群里有人发了一句"想你们了"，沉寂了两年的群突然活了。原来大家都在，只是不知道怎么开口。',
         imageUrl: '',
         curvePosition: 1.0,
         gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
@@ -387,81 +397,81 @@ function createGraduationTemplate(): TimelineData {
   }
 }
 
-// ========== 孤独模板 ==========
+// ========== 孤独模板（重写：不再假装一切都好） ==========
 function createSoloTemplate(): TimelineData {
   return {
     title: '一个人的宇宙',
-    subtitle: '孤独不是缺憾，是我完整的星轨',
+    subtitle: '那些独自扛过的夜，都变成了星',
     templateId: 'solo',
     nodes: createNodes([
       {
         year: 2018,
-        title: '独居',
-        description: '一个人搬进小房间，空荡荡的。晚上安静得能听到自己的心跳。有点怕，但也有点自由。',
+        title: '搬出来',
+        description: '一个人搬进小房间，空得能听到回声。第一顿饭是泡面，坐在地上吃的。没有桌子，也没有人问我好不好吃。',
         imageUrl: '',
         curvePosition: 0.0,
         gradient: 'linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 100%)',
       },
       {
         year: 2019,
-        title: '一个人吃饭',
-        description: '从不好意思一个人进餐厅，到享受一个人吃火锅。原来独处不是可怜，是一种能力。',
+        title: '生病',
+        description: '39度，自己打车去医院。挂号、抽血、等报告，一个人跑上跑下。护士问"家属呢"，我说"我自己可以"。',
         imageUrl: '',
         curvePosition: 0.11,
         gradient: 'linear-gradient(135deg, #1a1a4e 0%, #2d1b69 100%)',
       },
       {
         year: 2019,
-        title: '深夜',
-        description: '凌晨三点，城市睡了，我还醒着。不是失眠，是只有这个时间，世界才真正属于我。',
+        title: '除夕',
+        description: '朋友圈全是年夜饭，我煮了速冻饺子。窗外烟花很响，我给妈妈打了个电话，说"我吃了，很好吃"。',
         imageUrl: '',
         curvePosition: 0.22,
         gradient: 'linear-gradient(135deg, #0c3483 0%, #1a1a4e 100%)',
       },
       {
         year: 2020,
-        title: '独处',
-        description: '别人说"你一个人不孤独吗？"我说"比在错误的人群里自在。"孤独是选择，不是惩罚。',
+        title: '通讯录',
+        description: '翻了三遍通讯录，不知道打给谁。不是没有人，是怕打扰，怕对方说"我在忙"。最后锁了屏，对自己说了句晚安。',
         imageUrl: '',
         curvePosition: 0.33,
         gradient: 'linear-gradient(135deg, #2d1b69 0%, #6e3aff 100%)',
       },
       {
         year: 2020,
-        title: '自愈',
-        description: '最难的时候，没有人可以倾诉。哭完擦干眼泪，给自己倒了杯水。原来我比自己以为的要坚强。',
+        title: '崩溃',
+        description: '也不算什么大事，外卖洒了而已。但就是那一刻，眼泪止不住。不是为外卖哭，是为这该死的孤独。',
         imageUrl: '',
         curvePosition: 0.44,
         gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
       },
       {
         year: 2021,
-        title: '旅行',
-        description: '一个人去了海边。没有人和我说话，但海浪声就够了。日落的时候，我觉得自己也是风景的一部分。',
+        title: '学会',
+        description: '学会一个人修灯泡、换纱窗、通下水道。学会在餐厅对服务员说"一位"。学会不因为一个人就亏待自己。',
         imageUrl: '',
         curvePosition: 0.55,
         gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
       },
       {
         year: 2022,
-        title: '和解',
-        description: '不再逼自己合群了。不是所有人都需要热闹，有些人就是需要安静。我终于不再为此道歉。',
+        title: '不和解',
+        description: '有人说"你要学会享受孤独"。我不想享受，我只是扛着。扛着扛着，就扛过来了。不用和解，扛住就行。',
         imageUrl: '',
         curvePosition: 0.66,
         gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       },
       {
         year: 2023,
-        title: '自在',
-        description: '周末睡到自然醒，看书、发呆、散步。没有人催我，没有人等我。这种自由，是孤独给我的礼物。',
+        title: '微光',
+        description: '下班路上看到很美的晚霞，拍了张照，想了想，没发朋友圈。有些美，自己看到了就够了。',
         imageUrl: '',
         curvePosition: 0.77,
         gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
       },
       {
         year: 2024,
-        title: '完整',
-        description: '我不再等一个人来让我完整。我一个人，就是完整的。星轨上只有一颗星，但它亮得刚好。',
+        title: '此刻',
+        description: '此刻的我，一个人坐在窗边，看着这条星轨。不完美，但真实。每一颗星，都是我独自熬过的夜。',
         imageUrl: '',
         curvePosition: 0.88,
         gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -469,10 +479,101 @@ function createSoloTemplate(): TimelineData {
       {
         year: 2070,
         title: '回望',
-        description: '一个人走完了这一生。没有轰轰烈烈，但每一步都是自己的选择。如果重来，我还是会这样走。',
+        description: '一个人走完了这一生。有些路，注定只能一个人走。但回头看，那些脚印都是自己的——这比什么都踏实。',
         imageUrl: '',
         curvePosition: 1.0,
         gradient: 'linear-gradient(135deg, #0a0a2e 0%, #6e3aff 50%, #ff6b9d 100%)',
+      },
+    ]),
+  }
+}
+
+// ========== 父母模板（银发经济核心模板） ==========
+function createParentsTemplate(): TimelineData {
+  return {
+    title: '致我深爱的你',
+    subtitle: '你们把我养大，我陪你们变老',
+    templateId: 'parents',
+    nodes: createNodes([
+      {
+        year: 1990,
+        title: '我来了',
+        description: '你抱着我，手都在抖。那么小一个人，你不知道怎么抱才不会弄疼我。你看着我，笑了，又哭了。',
+        imageUrl: '',
+        curvePosition: 0.0,
+        gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+      },
+      {
+        year: 1993,
+        title: '学走路',
+        description: '你弯着腰牵着我的手，走了无数遍。我摔了，你比我还疼，但还是说"再试一次"。你教会我的第一件事，是不怕摔倒。',
+        imageUrl: '',
+        curvePosition: 0.11,
+        gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
+      },
+      {
+        year: 2000,
+        title: '送我上学',
+        description: '你每天骑自行车送我，后座上绑着一个小垫子。冬天的风很冷，你让我把手塞进你衣服里。你的背，是最暖的地方。',
+        imageUrl: '',
+        curvePosition: 0.22,
+        gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      },
+      {
+        year: 2008,
+        title: '我走了',
+        description: '考上大学那天，你笑着说"好"。转身的时候，我偷偷回头看——你在擦眼泪。你不想让我看到你哭。',
+        imageUrl: '',
+        curvePosition: 0.33,
+        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      },
+      {
+        year: 2012,
+        title: '电话',
+        description: '每次打电话你都只说"家里都好，你忙你的"。后来爸爸偷偷告诉我，你把手机放在枕头边，怕错过我的电话。',
+        imageUrl: '',
+        curvePosition: 0.44,
+        gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      },
+      {
+        year: 2015,
+        title: '回家',
+        description: '一桌子菜，都是我小时候爱吃的。你说"多吃点"，自己却没怎么动筷子。你就喜欢看我吃。',
+        imageUrl: '',
+        curvePosition: 0.55,
+        gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      },
+      {
+        year: 2020,
+        title: '白发',
+        description: '视频的时候，你把手机拿得很远。我问你眼睛怎么了，你说"老花，正常"。你没说的是，你已经开始看不清我的脸了。',
+        imageUrl: '',
+        curvePosition: 0.66,
+        gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+      },
+      {
+        year: 2023,
+        title: '忘了',
+        description: '你开始重复问同一个问题。我回答了三遍，你还是会问。我不烦，我只是怕——怕有一天你连我的名字都忘了。',
+        imageUrl: '',
+        curvePosition: 0.77,
+        gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      },
+      {
+        year: 2024,
+        title: '陪你',
+        description: '这次换我牵你的手。你走得很慢，我不催你。就像小时候，你弯着腰等我慢慢走一样。我们有的是时间。',
+        imageUrl: '',
+        curvePosition: 0.88,
+        gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+      },
+      {
+        year: 2070,
+        title: '永远',
+        description: '如果有下辈子，我还做你们的孩子。这次换我来养你们，好不好？',
+        imageUrl: '',
+        curvePosition: 1.0,
+        gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #a18cd1 100%)',
       },
     ]),
   }
