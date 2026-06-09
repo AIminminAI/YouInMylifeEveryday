@@ -28,3 +28,6 @@ dist-ssr
 .env
 data/
 uploads/
+
+# Wrangler 临时文件
+.wrangler/
