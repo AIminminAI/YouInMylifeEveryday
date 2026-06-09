@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Download, Film, Image } from 'lucide-vue-next'
+import { Download, Film, Image, ChevronDown } from 'lucide-vue-next'
 import { ref } from 'vue'
 
 defineProps<{
@@ -50,21 +50,27 @@ function onClickOutside() {
     <Transition name="menu">
       <div
         v-if="showMenu && !isExportingVideo"
-        class="absolute top-full right-0 mt-2 glass rounded-xl overflow-hidden min-w-[160px]"
+        class="absolute top-full right-0 mt-2 glass rounded-xl overflow-hidden min-w-[180px]"
       >
         <button
-          class="w-full px-4 py-3 flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+          class="w-full px-4 py-3.5 flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
           @click="handleImage"
         >
           <Image :size="16" />
-          <span class="text-xs font-body">保存截图</span>
+          <div>
+            <div class="text-sm font-body">保存截图</div>
+            <div class="text-[10px] text-white/30 font-body">当前画面 PNG</div>
+          </div>
         </button>
         <button
-          class="w-full px-4 py-3 flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+          class="w-full px-4 py-3.5 flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
           @click="handleVideo"
         >
           <Film :size="16" />
-          <span class="text-xs font-body">导出视频</span>
+          <div>
+            <div class="text-sm font-body">导出视频</div>
+            <div class="text-[10px] text-white/30 font-body">完整星轨漫游 WebM</div>
+          </div>
         </button>
       </div>
     </Transition>
@@ -87,6 +93,7 @@ function onClickOutside() {
       <span class="text-xs font-body tracking-wide">
         {{ isExportingVideo ? `录制中 ${exportProgress}%` : '导出' }}
       </span>
+      <ChevronDown v-if="!isExportingVideo" :size="12" class="text-white/30" />
     </button>
   </div>
 </template>

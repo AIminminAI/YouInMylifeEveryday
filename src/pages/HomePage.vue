@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { Sparkles } from 'lucide-vue-next'
 import { useThreeScene } from '@/composables/useThreeScene'
 import { useSubscription } from '@/composables/useSubscription'
-import { timelineData } from '@/data/timelineData'
+import { timelineData, saveTimelineData, type TimeNode } from '@/data/timelineData'
 import InfoCard from '@/components/InfoCard.vue'
 import NavControls from '@/components/NavControls.vue'
 import ScrollHint from '@/components/ScrollHint.vue'
@@ -76,6 +76,15 @@ function handleNavGoto(index: number) {
 function handleNavNext() {
   nextNode()
 }
+
+// 更新节点数据（编辑文案/上传照片后触发）
+function handleUpdateNode(updatedNode: TimeNode) {
+  const index = timelineData.nodes.findIndex(n => n.id === updatedNode.id)
+  if (index >= 0) {
+    timelineData.nodes[index] = updatedNode
+    saveTimelineData(timelineData)
+  }
+}
 </script>
 
 <template>
@@ -147,8 +156,12 @@ function handleNavNext() {
       @replay="replay"
     />
 
-    <!-- 图文卡片 -->
-    <InfoCard :node="timelineData.nodes[activeNodeIndex]" :visible="cardVisible" />
+    <!-- 图文卡片 - 支持编辑和上传照片 -->
+    <InfoCard
+      :node="timelineData.nodes[activeNodeIndex]"
+      :visible="cardVisible"
+      @update-node="handleUpdateNode"
+    />
 
     <!-- 导航控制 -->
     <NavControls
