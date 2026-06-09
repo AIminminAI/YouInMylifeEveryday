@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生命星轨 - 使用指南</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans SC', 'PingFang SC', sans-serif;
+      background: #0a0a1a;
+      color: #e0e0e0;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+    .container { max-width: 680px; margin: 0 auto; padding: 40px 20px 80px; }
+    h1 { font-size: 28px; text-align: center; margin-bottom: 8px; color: #fff; letter-spacing: 4px; }
+    .subtitle { text-align: center; color: rgba(255,255,255,0.4); font-size: 14px; margin-bottom: 40px; }
+    h2 {
+      font-size: 18px; color: #00d4ff; margin: 36px 0 16px;
+      padding-bottom: 8px; border-bottom: 1px solid rgba(0,212,255,0.15);
+    }
+    h3 { font-size: 15px; color: #ffd700; margin: 20px 0 10px; }
+    p { margin-bottom: 12px; color: rgba(255,255,255,0.7); font-size: 14px; }
+    .step {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(0,212,255,0.15); color: #00d4ff;
+      font-size: 13px; font-weight: bold; margin-right: 10px;
+    }
+    .step-title { font-size: 15px; color: #fff; font-weight: 500; }
+    .step-desc { margin-top: 8px; padding-left: 38px; color: rgba(255,255,255,0.55); font-size: 13px; }
+    .tip {
+      background: rgba(0,212,255,0.05);
+      border-left: 3px solid rgba(0,212,255,0.3);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+    .tip strong { color: #00d4ff; }
+    .warn {
+      background: rgba(255,107,53,0.05);
+      border-left: 3px solid rgba(255,107,53,0.3);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+    .warn strong { color: #ff6b35; }
+    .btn-back {
+      display: block; width: fit-content; margin: 40px auto 0;
+      padding: 12px 32px; border-radius: 12px;
+      background: linear-gradient(135deg, #00d4ff, #0099ff);
+      color: #000; font-size: 14px; font-weight: 600;
+      text-decoration: none; letter-spacing: 2px;
+    }
+    .btn-back:hover { opacity: 0.9; }
+    .faq-q { font-size: 14px; color: #fff; margin-bottom: 4px; }
+    .faq-a { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 16px; padding-left: 16px; }
+    .divider { height: 1px; background: linear-gradient(to right, rgba(0,212,255,0.2), transparent); margin: 32px 0; }
+    @media (max-width: 640px) {
+      .container { padding: 24px 16px 60px; }
+      h1 { font-size: 22px; }
+      h2 { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>生命星轨</h1>
+    <p class="subtitle">使用指南 · 3分钟制作你的时光视频</p>
+
+    <h2>一、打开网站</h2>
+    <p>在浏览器中访问：<strong style="color:#00d4ff">you-in-mylife-everyday.pages.dev</strong></p>
+    <div class="tip">
+      <strong>推荐浏览器：</strong>Chrome、Edge、Safari。微信内点击链接可直接打开。
+    </div>
+
+    <h2>二、浏览星轨</h2>
+    <p>打开后，你会看到一条 3D 螺旋星轨，上面有 10 个发光节点，代表人生的不同阶段。</p>
+
+    <div class="step">
+      <span class="step-num">1</span>
+      <span class="step-title">自动播放</span>
+      <div class="step-desc">页面加载后会自动从第一个节点开始播放，每个节点停留约 3 秒</div>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span>
+      <span class="step-title">手动浏览</span>
+      <div class="step-desc">
+        电脑：滚动鼠标滚轮<br>
+        手机：上下滑动屏幕<br>
+        也可以点击底部的圆点跳转到指定节点
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">3</span>
+      <span class="step-title">暂停/继续</span>
+      <div class="step-desc">点击底部中间的 播放/暂停 按钮控制自动播放</div>
+    </div>
+
+    <h2>三、上传照片</h2>
+    <p>每个节点都可以上传你自己的照片，替换默认的渐变色块。</p>
+
+    <div class="step">
+      <span class="step-num">1</span>
+      <span class="step-title">找到要编辑的节点</span>
+      <div class="step-desc">滚动到某个节点，右侧会弹出信息卡片</div>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span>
+      <span class="step-title">点击上传照片</span>
+      <div class="step-desc">
+        手机：卡片图片区域会显示「点击上传照片」按钮，直接点击<br>
+        电脑：鼠标悬停在图片区域，右上角出现相机图标，点击它
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">3</span>
+      <span class="step-title">选择照片</span>
+      <div class="step-desc">
+        手机：可以选择「拍照」或「从相册选择」<br>
+        电脑：从文件夹中选择图片<br>
+        照片会自动压缩，无需担心太大
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">4</span>
+      <span class="step-title">删除照片</span>
+      <div class="step-desc">已上传照片后，悬停/点击图片区域右上角会出现删除按钮</div>
+    </div>
+
+    <div class="warn">
+      <strong>注意：</strong>照片保存在你的浏览器中，清除浏览器数据会丢失照片。建议先导出视频再清除。
+    </div>
+
+    <h2>四、编辑文案</h2>
+    <p>每个节点的年份、标题和描述都可以自定义。</p>
+
+    <div class="step">
+      <span class="step-num">1</span>
+      <span class="step-title">点击编辑按钮</span>
+      <div class="step-desc">在信息卡片的年份标签旁边，有一个「编辑」按钮</div>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span>
+      <span class="step-title">修改内容</span>
+      <div class="step-desc">
+        年份：改成你真实的年份（如 1995）<br>
+        标题：改成你的故事标题（如「出生」「毕业」）<br>
+        描述：写下你想说的话（最多 200 字）
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">3</span>
+      <span class="step-title">保存</span>
+      <div class="step-desc">点击「保存」按钮，修改会自动保存到浏览器</div>
+    </div>
+
+    <h2>五、导出视频</h2>
+    <p>编辑完成后，可以导出一段完整的星轨漫游视频。</p>
+
+    <div class="step">
+      <span class="step-num">1</span>
+      <span class="step-title">点击右上角「导出」按钮</span>
+      <div class="step-desc">在弹出的菜单中选择「导出视频」</div>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span>
+      <span class="step-title">等待录制</span>
+      <div class="step-desc">
+        系统会自动从头播放并录制，大约需要 30 秒<br>
+        按钮上会显示录制进度百分比
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">3</span>
+      <span class="step-title">自动下载</span>
+      <div class="step-desc">录制完成后，视频文件会自动下载到你的设备（WebM 格式，1080p）</div>
+    </div>
+
+    <div class="tip">
+      <strong>截图导出：</strong>如果只需要当前画面，选择「保存截图」即可，会下载一张 PNG 图片。
+    </div>
+
+    <h2>六、分享给朋友</h2>
+    <div class="step">
+      <span class="step-num">1</span>
+      <span class="step-title">点击「分享」按钮</span>
+      <div class="step-desc">选择复制链接，发送给朋友即可</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>常见问题</h2>
+
+    <p class="faq-q">Q：打开页面是白屏怎么办？</p>
+    <p class="faq-a">请使用 Chrome 或 Edge 浏览器打开。如果是在微信中，可以直接点击链接打开。</p>
+
+    <p class="faq-q">Q：上传的照片会丢失吗？</p>
+    <p class="faq-a">照片保存在浏览器本地，清除浏览器数据会丢失。建议编辑完成后及时导出视频。</p>
+
+    <p class="faq-q">Q：导出的视频是什么格式？</p>
+    <p class="faq-a">WebM 格式，1080p 高清。大多数播放器都支持。如果需要 MP4，可以用在线转换工具。</p>
+
+    <p class="faq-q">Q：可以编辑多少个节点？</p>
+    <p class="faq-a">免费版可以编辑全部 10 个节点，没有限制。</p>
+
+    <p class="faq-q">Q：手机上操作不方便怎么办？</p>
+    <p class="faq-a">建议横屏操作。上传照片和编辑文案的按钮在手机上会始终显示，不需要长按。</p>
+
+    <p class="faq-q">Q：想重新开始怎么办？</p>
+    <p class="faq-a">点击左上角的「重置」按钮，可以清除所有编辑恢复默认。</p>
+
+    <a href="/" class="btn-back">返回生命星轨</a>
+  </div>
+</body>
+</html>

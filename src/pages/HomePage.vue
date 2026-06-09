@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Sparkles, RotateCcw } from 'lucide-vue-next'
+import { Sparkles, RotateCcw, HelpCircle } from 'lucide-vue-next'
 import { useThreeScene } from '@/composables/useThreeScene'
 import { useSubscription } from '@/composables/useSubscription'
 import { timelineData, saveTimelineData, createDefaultData, type TimeNode } from '@/data/timelineData'
@@ -150,6 +150,15 @@ function handleResetData() {
         <RotateCcw class="text-white/20" :size="12" />
         <span class="text-[10px] text-white/20 font-body">重置</span>
       </button>
+      <a
+        href="/guide.html"
+        target="_blank"
+        class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 hover:bg-white/[0.08] transition-all"
+        title="使用指南"
+      >
+        <HelpCircle class="text-white/20" :size="12" />
+        <span class="text-[10px] text-white/20 font-body">帮助</span>
+      </a>
     </div>
 
     <!-- 导出按钮 -->
