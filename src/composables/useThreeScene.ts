@@ -729,6 +729,10 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     exportProgress.value = 0
     recordedChunks = []
 
+    // 提示用户导出需要的时间
+    const estimatedSeconds = Math.round(nodes.length * (AUTO_PLAY_NODE_WAIT / 1000 + 1))
+    console.log(`[VideoExport] 预计录制时间约 ${estimatedSeconds} 秒`)
+
     // 创建离屏渲染器 - 纯净录制，分辨率 1080p
     const exportWidth = 1920
     const exportHeight = 1080

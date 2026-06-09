@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Sparkles } from 'lucide-vue-next'
+import { Sparkles, RotateCcw } from 'lucide-vue-next'
 import { useThreeScene } from '@/composables/useThreeScene'
 import { useSubscription } from '@/composables/useSubscription'
-import { timelineData, saveTimelineData, type TimeNode } from '@/data/timelineData'
+import { timelineData, saveTimelineData, createDefaultData, type TimeNode } from '@/data/timelineData'
 import InfoCard from '@/components/InfoCard.vue'
 import NavControls from '@/components/NavControls.vue'
 import ScrollHint from '@/components/ScrollHint.vue'
@@ -22,6 +22,9 @@ const cardVisible = ref(false)
 const { isFree, isPaid } = useSubscription()
 const showPaywall = ref(false)
 const paywallTrigger = ref<'node' | 'export-video' | 'export-hd' | 'skin'>('node')
+
+// 重置确认
+const showResetConfirm = ref(false)
 
 const {
   isLoading,
@@ -85,6 +88,17 @@ function handleUpdateNode(updatedNode: TimeNode) {
     saveTimelineData(timelineData)
   }
 }
+
+// 重置所有数据
+function handleResetData() {
+  const fresh = createDefaultData()
+  timelineData.title = fresh.title
+  timelineData.subtitle = fresh.subtitle
+  timelineData.nodes = fresh.nodes
+  saveTimelineData(timelineData)
+  showResetConfirm.value = false
+  window.location.reload()
+}
 </script>
 
 <template>
@@ -109,31 +123,33 @@ function handleUpdateNode(updatedNode: TimeNode) {
     <!-- 3D 场景容器 -->
     <div ref="sceneContainer" class="absolute inset-0"></div>
 
-    <!-- 标题 -->
+    <!-- 左上角：标题 -->
     <TitleOverlay :title="timelineData.title" :subtitle="timelineData.subtitle" />
 
-    <!-- 免费版标识 - 温和提示 -->
-    <div
-      v-if="isFree"
-      class="fixed top-6 left-6 z-20 pointer-events-auto"
-    >
+    <!-- 左上角标题下方：升级按钮 / 重置按钮 -->
+    <div class="fixed top-[88px] left-6 z-20 pointer-events-auto flex flex-col gap-2">
       <button
+        v-if="isFree"
         class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 hover:bg-white/[0.08] transition-all"
         @click="showPaywall = true; paywallTrigger = 'node'"
       >
         <Sparkles class="text-[#00d4ff]/50" :size="12" />
         <span class="text-[10px] text-white/30 font-body">升级</span>
       </button>
-    </div>
-
-    <!-- 已付费标识 -->
-    <div
-      v-if="isPaid"
-      class="fixed top-6 left-6 z-20 pointer-events-none"
-    >
-      <div class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+      <div
+        v-if="isPaid"
+        class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 pointer-events-none"
+      >
         <span class="text-[10px] text-[#ffd700]/70 font-body">PRO</span>
       </div>
+      <button
+        class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 hover:bg-white/[0.08] transition-all"
+        title="重置数据"
+        @click="showResetConfirm = true"
+      >
+        <RotateCcw class="text-white/20" :size="12" />
+        <span class="text-[10px] text-white/20 font-body">重置</span>
+      </button>
     </div>
 
     <!-- 导出按钮 -->
@@ -182,6 +198,36 @@ function handleUpdateNode(updatedNode: TimeNode) {
       @close="showPaywall = false"
     />
 
+    <!-- 重置确认弹窗 -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div
+          v-if="showResetConfirm"
+          class="fixed inset-0 z-[100] flex items-center justify-center px-4"
+        >
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showResetConfirm = false"></div>
+          <div class="relative glass rounded-2xl p-6 max-w-xs w-full text-center">
+            <h3 class="font-display text-lg text-white mb-2">重置所有数据？</h3>
+            <p class="text-white/40 text-xs font-body mb-5">将清除你上传的照片和编辑的文案，恢复为默认模板。此操作不可撤销。</p>
+            <div class="flex gap-3">
+              <button
+                class="flex-1 py-2 rounded-xl text-xs font-body bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 transition-all"
+                @click="showResetConfirm = false"
+              >
+                取消
+              </button>
+              <button
+                class="flex-1 py-2 rounded-xl text-xs font-body bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 transition-all"
+                @click="handleResetData"
+              >
+                确认重置
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- 开发者工具 -->
     <DevTools />
   </div>
@@ -194,4 +240,8 @@ function handleUpdateNode(updatedNode: TimeNode) {
 .loading-leave-to {
   opacity: 0;
 }
+.modal-enter-active { transition: all 0.3s ease; }
+.modal-leave-active { transition: all 0.2s ease; }
+.modal-enter-from { opacity: 0; }
+.modal-leave-to { opacity: 0; }
 </style>

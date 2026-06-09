@@ -16,7 +16,7 @@ export interface TimelineData {
 }
 
 // 默认模板数据 - 用户可以编辑
-function createDefaultData(): TimelineData {
+export function createDefaultData(): TimelineData {
   return {
     title: '生命星轨',
     subtitle: '记录生命中每一个重要时刻',

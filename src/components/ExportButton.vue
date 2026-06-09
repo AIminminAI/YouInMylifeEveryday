@@ -93,6 +93,7 @@ function onClickOutside() {
       <span class="text-xs font-body tracking-wide">
         {{ isExportingVideo ? `录制中 ${exportProgress}%` : '导出' }}
       </span>
+      <span v-if="isExportingVideo && exportProgress < 5" class="text-[10px] text-white/30 font-body ml-1">约30秒</span>
       <ChevronDown v-if="!isExportingVideo" :size="12" class="text-white/30" />
     </button>
   </div>

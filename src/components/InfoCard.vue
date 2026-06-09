@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch } from 'vue'
 import { Camera, Pencil, Check, X, Trash2 } from 'lucide-vue-next'
 import type { TimeNode } from '@/data/timelineData'
 
@@ -17,6 +17,12 @@ const isEditing = ref(false)
 const editTitle = ref('')
 const editDescription = ref('')
 const editYear = ref(2000)
+
+// 移动端：始终显示操作按钮（不依赖 hover）
+const isTouchDevice = ref(false)
+if (typeof window !== 'undefined') {
+  isTouchDevice.value = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+}
 
 watch(
   () => props.visible,
@@ -71,7 +77,12 @@ function handleUploadPhoto() {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (!file || !props.node) return
 
-    // 压缩图片
+    // 限制文件大小 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert('照片大小不能超过 5MB，请选择更小的照片')
+      return
+    }
+
     const reader = new FileReader()
     reader.onload = (ev) => {
       const img = new Image()
@@ -81,8 +92,8 @@ function handleUploadPhoto() {
         let w = img.width
         let h = img.height
         if (w > maxSize || h > maxSize) {
-          if (w > h) { h = h * maxSize / w; w = maxSize }
-          else { w = w * maxSize / h; h = maxSize }
+          if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
+          else { w = Math.round(w * maxSize / h); h = maxSize }
         }
         canvas.width = w
         canvas.height = h
@@ -91,6 +102,9 @@ function handleUploadPhoto() {
 
         const updated = { ...props.node!, userPhoto: base64 }
         emit('update-node', updated)
+      }
+      img.onerror = () => {
+        alert('照片加载失败，请换一张试试')
       }
       img.src = ev.target?.result as string
     }
@@ -110,7 +124,9 @@ function removePhoto() {
   <Transition name="card">
     <div
       v-if="show && node"
-      class="fixed right-2 sm:right-4 top-1/2 -translate-y-1/2 w-[calc(100%-1rem)] sm:w-80 z-20 pointer-events-auto"
+      class="fixed z-20 pointer-events-auto
+        right-2 sm:right-4 top-1/2 -translate-y-1/2
+        w-[calc(100%-1rem)] sm:w-80"
     >
       <div class="glass rounded-2xl overflow-hidden shadow-2xl">
         <!-- 图片区域 -->
@@ -136,34 +152,38 @@ function removePhoto() {
           <!-- 底部渐变遮罩 -->
           <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[rgba(10,10,26,0.9)] to-transparent"></div>
 
-          <!-- 悬浮操作按钮 -->
-          <div class="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <!-- 操作按钮 - 移动端始终显示，桌面端 hover 显示 -->
+          <div
+            class="absolute top-2 right-2 flex gap-1.5 transition-opacity duration-200"
+            :class="isTouchDevice ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
+          >
             <button
-              class="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/60 transition-all"
+              class="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white active:bg-black/70 transition-all"
               title="上传照片"
               @click="handleUploadPhoto"
             >
-              <Camera :size="14" />
+              <Camera :size="16" />
             </button>
             <button
               v-if="node.userPhoto"
-              class="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-red-400/70 hover:text-red-400 hover:bg-black/60 transition-all"
+              class="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-red-400/80 hover:text-red-400 active:bg-black/70 transition-all"
               title="移除照片"
               @click="removePhoto"
             >
-              <Trash2 :size="14" />
+              <Trash2 :size="16" />
             </button>
           </div>
 
-          <!-- 无照片时的上传提示 -->
+          <!-- 无照片时的上传提示 - 移动端始终显示 -->
           <button
             v-if="!node.userPhoto"
-            class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20"
+            class="absolute inset-0 flex items-center justify-center transition-opacity duration-200 bg-black/20"
+            :class="isTouchDevice ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
             @click="handleUploadPhoto"
           >
-            <div class="flex flex-col items-center gap-1 text-white/70">
-              <Camera :size="24" />
-              <span class="text-xs">点击上传照片</span>
+            <div class="flex flex-col items-center gap-2 text-white/80 bg-black/30 rounded-2xl px-6 py-4">
+              <Camera :size="28" />
+              <span class="text-sm font-body">点击上传照片</span>
             </div>
           </button>
         </div>
@@ -173,40 +193,42 @@ function removePhoto() {
           <!-- 编辑模式 -->
           <template v-if="isEditing">
             <div class="mb-3">
-              <label class="block text-[10px] text-white/30 mb-1">年份</label>
+              <label class="block text-[10px] text-white/30 mb-1 font-body">年份</label>
               <input
                 v-model.number="editYear"
                 type="number"
                 min="1900"
                 max="2099"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white/80 text-sm font-body focus:outline-none focus:border-[#00d4ff]/50"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/80 text-sm font-body focus:outline-none focus:border-[#00d4ff]/50"
               />
             </div>
             <div class="mb-3">
-              <label class="block text-[10px] text-white/30 mb-1">标题</label>
+              <label class="block text-[10px] text-white/30 mb-1 font-body">标题</label>
               <input
                 v-model="editTitle"
                 type="text"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white/80 text-sm font-body focus:outline-none focus:border-[#00d4ff]/50"
+                maxlength="20"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/80 text-sm font-body focus:outline-none focus:border-[#00d4ff]/50"
               />
             </div>
             <div class="mb-3">
-              <label class="block text-[10px] text-white/30 mb-1">描述</label>
+              <label class="block text-[10px] text-white/30 mb-1 font-body">描述</label>
               <textarea
                 v-model="editDescription"
                 rows="3"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white/80 text-sm font-body resize-none focus:outline-none focus:border-[#00d4ff]/50"
+                maxlength="200"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/80 text-sm font-body resize-none focus:outline-none focus:border-[#00d4ff]/50"
               ></textarea>
             </div>
             <div class="flex gap-2">
               <button
-                class="flex-1 py-1.5 rounded-lg text-xs font-body bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 transition-all flex items-center justify-center gap-1"
+                class="flex-1 py-2 rounded-lg text-xs font-body bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 active:bg-white/15 transition-all flex items-center justify-center gap-1"
                 @click="cancelEdit"
               >
                 <X :size="12" /> 取消
               </button>
               <button
-                class="flex-1 py-1.5 rounded-lg text-xs font-body bg-[#00d4ff]/20 border border-[#00d4ff]/30 text-[#00d4ff] hover:bg-[#00d4ff]/30 transition-all flex items-center justify-center gap-1"
+                class="flex-1 py-2 rounded-lg text-xs font-body bg-[#00d4ff]/20 border border-[#00d4ff]/30 text-[#00d4ff] hover:bg-[#00d4ff]/30 active:bg-[#00d4ff]/40 transition-all flex items-center justify-center gap-1"
                 @click="saveEdit"
               >
                 <Check :size="12" /> 保存
@@ -216,19 +238,19 @@ function removePhoto() {
 
           <!-- 展示模式 -->
           <template v-else>
-            <!-- 年份标签 -->
+            <!-- 年份标签 + 编辑按钮 -->
             <div class="flex items-center gap-2 mb-3">
               <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#00d4ff]/15 text-[#00d4ff] border border-[#00d4ff]/20">
                 {{ node.year }}
               </span>
               <div class="h-px flex-1 bg-gradient-to-r from-[#00d4ff]/20 to-transparent"></div>
-              <!-- 编辑按钮 -->
+              <!-- 编辑按钮 - 移动端更大更容易点击 -->
               <button
-                class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/10 transition-all"
-                title="编辑"
+                class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/10 active:bg-white/15 transition-all"
                 @click="startEdit"
               >
                 <Pencil :size="12" />
+                <span class="text-[10px] font-body">编辑</span>
               </button>
             </div>
 

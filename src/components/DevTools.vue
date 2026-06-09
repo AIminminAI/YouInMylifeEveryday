@@ -62,9 +62,7 @@ function resetToFree() {
           </div>
           <div class="flex items-center justify-between text-xs">
             <span class="text-white/40 font-body">视频导出</span>
-            <span class="font-body" :class="isFree ? 'text-yellow-400/70' : 'text-green-400/70'">
-              {{ isFree ? '有水印' : '无水印' }}
-            </span>
+            <span class="font-body text-green-400/70">无水印</span>
           </div>
         </div>
 
