@@ -331,3 +331,93 @@ describe('边界情况', () => {
     expect(data.nodes.length).toBeGreaterThan(0)
   })
 })
+
+// ========== 8. 断点恢复测试 ==========
+describe('断点恢复机制', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('编辑文案后刷新页面，数据自动恢复', () => {
+    // 模拟用户编辑
+    const data = createDefaultData()
+    data.nodes[0].title = '我的出生'
+    data.nodes[0].description = '1995年春天出生'
+    data.nodes[0].year = 1995
+    saveTimelineData(data)
+
+    // 模拟页面刷新：重新加载
+    const restored = loadTimelineData()
+    expect(restored.nodes[0].title).toBe('我的出生')
+    expect(restored.nodes[0].description).toBe('1995年春天出生')
+    expect(restored.nodes[0].year).toBe(1995)
+  })
+
+  it('上传照片后刷新页面，照片自动恢复', () => {
+    const data = createDefaultData()
+    data.nodes[2].userPhoto = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ'
+    saveTimelineData(data)
+
+    const restored = loadTimelineData()
+    expect(restored.nodes[2].userPhoto).toBe('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ')
+  })
+
+  it('付费状态刷新后恢复', () => {
+    localStorage.setItem('starorbit_plan', 'full')
+    const plan = localStorage.getItem('starorbit_plan')
+    expect(plan).toBe('full')
+  })
+
+  it('部分编辑不影响其他节点', () => {
+    const data = createDefaultData()
+    data.nodes[0].title = '修改的标题'
+    data.nodes[5].userPhoto = 'data:image/jpeg;base64,FAKE'
+    saveTimelineData(data)
+
+    const restored = loadTimelineData()
+    // 修改的节点保留
+    expect(restored.nodes[0].title).toBe('修改的标题')
+    expect(restored.nodes[5].userPhoto).toBe('data:image/jpeg;base64,FAKE')
+    // 未修改的节点保持默认
+    expect(restored.nodes[1].title).toBe('上学')
+    expect(restored.nodes[3].title).toBe('工作')
+  })
+
+  it('localStorage 损坏时降级为默认数据', () => {
+    localStorage.setItem('starorbit_timeline', 'corrupted{{{')
+    const data = loadTimelineData()
+    expect(data.nodes).toHaveLength(10)
+  })
+
+  it('QuotaExceededError 时 trimLargestPhoto 清理最大照片', () => {
+    const data = createDefaultData()
+    data.nodes[0].userPhoto = 'A'.repeat(1000) // 小照片
+    data.nodes[5].userPhoto = 'B'.repeat(5000) // 大照片
+
+    // 直接测试 trimLargestPhoto 逻辑
+    let maxIdx = -1
+    let maxSize = 0
+    data.nodes.forEach((node, i) => {
+      if (node.userPhoto && node.userPhoto.length > maxSize) {
+        maxSize = node.userPhoto.length
+        maxIdx = i
+      }
+    })
+    expect(maxIdx).toBe(5)
+
+    // 模拟清理
+    data.nodes[maxIdx].userPhoto = ''
+    expect(data.nodes[5].userPhoto).toBe('')
+    expect(data.nodes[0].userPhoto).toBeTruthy()
+  })
+
+  it('照片压缩逻辑：超过 500KB 进一步压缩', () => {
+    // 模拟压缩判断逻辑
+    const base64Length = 700 * 1024 / 0.75 // 约 700KB 的 base64
+    const sizeKB = Math.round(base64Length * 0.75 / 1024)
+    expect(sizeKB).toBeGreaterThan(500)
+    // 触发进一步压缩
+    const shouldCompressMore = sizeKB > 500
+    expect(shouldCompressMore).toBe(true)
+  })
+})

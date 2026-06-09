@@ -131,8 +131,58 @@ export function loadTimelineData(): TimelineData {
 
 export function saveTimelineData(data: TimelineData): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-  } catch { /* ignore */ }
+    const json = JSON.stringify(data)
+
+    // 检查 localStorage 剩余容量
+    const usedMB = getStorageUsedMB()
+    const dataMB = new Blob([json]).size / (1024 * 1024)
+
+    if (usedMB + dataMB > 4.5) {
+      // 接近 5MB 上限，尝试清理旧照片
+      console.warn(`[Storage] localStorage 使用 ${usedMB.toFixed(1)}MB + 新数据 ${dataMB.toFixed(1)}MB，接近上限`)
+      // 不阻止保存，但记录警告
+    }
+
+    localStorage.setItem(STORAGE_KEY, json)
+  } catch (e) {
+    // QuotaExceededError - 尝试移除最大的照片腾出空间
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      console.warn('[Storage] localStorage 已满，尝试清理照片腾出空间')
+      trimLargestPhoto(data)
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      } catch {
+        console.error('[Storage] 清理后仍无法保存')
+      }
+    }
+  }
+}
+
+function getStorageUsedMB(): number {
+  let total = 0
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key) {
+      total += (localStorage.getItem(key)?.length || 0) * 2 // UTF-16 每字符 2 字节
+    }
+  }
+  return total / (1024 * 1024)
+}
+
+function trimLargestPhoto(data: TimelineData): void {
+  // 找到最大的照片并移除
+  let maxIdx = -1
+  let maxSize = 0
+  data.nodes.forEach((node, i) => {
+    if (node.userPhoto && node.userPhoto.length > maxSize) {
+      maxSize = node.userPhoto.length
+      maxIdx = i
+    }
+  })
+  if (maxIdx >= 0) {
+    console.warn(`[Storage] 移除节点 ${maxIdx} 的照片以腾出空间`)
+    data.nodes[maxIdx].userPhoto = ''
+  }
 }
 
 export const timelineData = loadTimelineData()

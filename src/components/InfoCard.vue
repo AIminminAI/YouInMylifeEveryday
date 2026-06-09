@@ -100,8 +100,17 @@ function handleUploadPhoto() {
         canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
         const base64 = canvas.toDataURL('image/jpeg', 0.7)
 
-        const updated = { ...props.node!, userPhoto: base64 }
-        emit('update-node', updated)
+        // 检查压缩后大小，超过 500KB 提示用户
+        const sizeKB = Math.round(base64.length * 0.75 / 1024)
+        if (sizeKB > 500) {
+          // 进一步压缩
+          const moreCompressed = canvas.toDataURL('image/jpeg', 0.4)
+          const updated = { ...props.node!, userPhoto: moreCompressed }
+          emit('update-node', updated)
+        } else {
+          const updated = { ...props.node!, userPhoto: base64 }
+          emit('update-node', updated)
+        }
       }
       img.onerror = () => {
         alert('照片加载失败，请换一张试试')
