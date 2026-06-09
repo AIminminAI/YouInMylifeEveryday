@@ -173,6 +173,7 @@ describe('文案编辑流程', () => {
     const resetData: TimelineData = {
       title: fresh.title,
       subtitle: fresh.subtitle,
+      templateId: fresh.templateId,
       nodes: fresh.nodes,
     }
     saveTimelineData(resetData)

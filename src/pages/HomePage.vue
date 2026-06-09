@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Sparkles, RotateCcw, HelpCircle } from 'lucide-vue-next'
+import { Sparkles, RotateCcw, HelpCircle, Layout } from 'lucide-vue-next'
 import { useThreeScene } from '@/composables/useThreeScene'
 import { useSubscription } from '@/composables/useSubscription'
-import { timelineData, saveTimelineData, createDefaultData, type TimeNode } from '@/data/timelineData'
+import { timelineData, saveTimelineData, createDefaultData, createTemplateData, type TimeNode } from '@/data/timelineData'
 import InfoCard from '@/components/InfoCard.vue'
 import NavControls from '@/components/NavControls.vue'
 import ScrollHint from '@/components/ScrollHint.vue'
@@ -12,6 +12,7 @@ import ExportButton from '@/components/ExportButton.vue'
 import PlayControl from '@/components/PlayControl.vue'
 import PaywallModal from '@/components/PaywallModal.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import TemplateSelector from '@/components/TemplateSelector.vue'
 import DevTools from '@/components/DevTools.vue'
 
 const sceneContainer = ref<HTMLElement | null>(null)
@@ -25,6 +26,9 @@ const paywallTrigger = ref<'node' | 'export-video' | 'export-hd' | 'skin'>('node
 
 // 重置确认
 const showResetConfirm = ref(false)
+
+// 模板选择
+const showTemplateSelector = ref(false)
 
 const {
   isLoading,
@@ -94,9 +98,22 @@ function handleResetData() {
   const fresh = createDefaultData()
   timelineData.title = fresh.title
   timelineData.subtitle = fresh.subtitle
+  timelineData.templateId = fresh.templateId
   timelineData.nodes = fresh.nodes
   saveTimelineData(timelineData)
   showResetConfirm.value = false
+  window.location.reload()
+}
+
+// 切换模板
+function handleTemplateSelect(templateId: string) {
+  const data = createTemplateData(templateId)
+  timelineData.title = data.title
+  timelineData.subtitle = data.subtitle
+  timelineData.templateId = data.templateId
+  timelineData.nodes = data.nodes
+  saveTimelineData(timelineData)
+  showTemplateSelector.value = false
   window.location.reload()
 }
 </script>
@@ -142,6 +159,14 @@ function handleResetData() {
       >
         <span class="text-[10px] text-[#ffd700]/70 font-body">PRO</span>
       </div>
+      <button
+        class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 hover:bg-white/[0.08] transition-all"
+        title="切换模板"
+        @click="showTemplateSelector = true"
+      >
+        <Layout class="text-white/20" :size="12" />
+        <span class="text-[10px] text-white/20 font-body">模板</span>
+      </button>
       <button
         class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 hover:bg-white/[0.08] transition-all"
         title="重置数据"
@@ -205,6 +230,13 @@ function handleResetData() {
       :visible="showPaywall"
       :trigger="paywallTrigger"
       @close="showPaywall = false"
+    />
+
+    <!-- 模板选择器 -->
+    <TemplateSelector
+      :visible="showTemplateSelector"
+      @close="showTemplateSelector = false"
+      @select="handleTemplateSelect"
     />
 
     <!-- 重置确认弹窗 -->
