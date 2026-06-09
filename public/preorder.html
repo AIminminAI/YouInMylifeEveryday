@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生命星轨 · 预售</title>
+  <meta property="og:title" content="生命星轨 - 把你的人生变成3D星空" />
+  <meta property="og:description" content="上传照片，编辑文案，一键导出你的3D人生星轨视频" />
+  <meta property="og:image" content="https://you-in-mylife-everyday.pages.dev/favicon.svg" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans SC', 'PingFang SC', sans-serif;
+      background: #0a0a1a;
+      color: #e0e0e0;
+      line-height: 1.8;
+    }
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 30%, rgba(0,212,255,0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 30% 70%, rgba(139,92,246,0.06) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 80%, rgba(255,215,0,0.04) 0%, transparent 50%);
+    }
+    .hero * { position: relative; z-index: 1; }
+    .logo { font-size: 36px; letter-spacing: 8px; color: #fff; margin-bottom: 8px; font-weight: 300; }
+    .tagline { font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 40px; letter-spacing: 2px; }
+    .demo-video {
+      width: 100%; max-width: 420px;
+      aspect-ratio: 9/16;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #0a1a3e, #1a0a4e, #0a2a3e);
+      margin-bottom: 40px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0,212,255,0.1);
+      position: relative;
+    }
+    .demo-video video {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .demo-placeholder {
+      text-align: center; padding: 40px;
+    }
+    .demo-placeholder .orbit {
+      width: 120px; height: 120px;
+      border: 2px solid rgba(0,212,255,0.3);
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      animation: spin 8s linear infinite;
+      position: relative;
+    }
+    .demo-placeholder .orbit::after {
+      content: '';
+      position: absolute; top: -4px; left: 50%;
+      width: 8px; height: 8px;
+      background: #00d4ff;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #00d4ff;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .demo-placeholder p { color: rgba(255,255,255,0.4); font-size: 13px; }
+
+    .features {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; max-width: 420px; width: 100%;
+      margin-bottom: 40px;
+    }
+    .feature {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .feature-icon { font-size: 24px; margin-bottom: 6px; }
+    .feature-title { font-size: 13px; color: #fff; font-weight: 500; }
+    .feature-desc { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+    .pricing {
+      max-width: 420px; width: 100%;
+      margin-bottom: 40px;
+    }
+    .pricing-title {
+      text-align: center; font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 16px;
+      letter-spacing: 2px;
+    }
+    .price-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: all 0.2s;
+    }
+    .price-card:hover { border-color: rgba(0,212,255,0.2); }
+    .price-card.popular {
+      border-color: rgba(0,212,255,0.3);
+      background: rgba(0,212,255,0.05);
+    }
+    .price-left { flex: 1; }
+    .price-name { font-size: 15px; color: #fff; font-weight: 500; }
+    .price-desc { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .price-right { text-align: right; }
+    .price-amount { font-size: 22px; color: #00d4ff; font-weight: 700; }
+    .price-original { font-size: 12px; color: rgba(255,255,255,0.3); text-decoration: line-through; }
+    .price-badge {
+      display: inline-block;
+      background: rgba(255,107,53,0.15);
+      color: #ff6b35;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    .cta-section {
+      max-width: 420px; width: 100%;
+      margin-bottom: 60px;
+    }
+    .cta-btn {
+      display: block; width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      font-size: 16px; font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: all 0.2s;
+      text-align: center;
+      text-decoration: none;
+    }
+    .cta-primary {
+      background: linear-gradient(135deg, #00d4ff, #0099ff);
+      color: #000;
+      margin-bottom: 10px;
+    }
+    .cta-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .cta-secondary {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .cta-secondary:hover { background: rgba(255,255,255,0.08); }
+
+    .survey {
+      max-width: 420px; width: 100%;
+      margin-bottom: 60px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .survey h3 {
+      font-size: 15px; color: #fff; margin-bottom: 16px;
+      text-align: center;
+    }
+    .survey-group { margin-bottom: 16px; }
+    .survey-label {
+      font-size: 12px; color: rgba(255,255,255,0.5);
+      margin-bottom: 8px; display: block;
+    }
+    .survey-options {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .survey-option {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .survey-option:hover { border-color: rgba(0,212,255,0.3); }
+    .survey-option.selected {
+      border-color: #00d4ff;
+      background: rgba(0,212,255,0.1);
+      color: #00d4ff;
+    }
+    .survey-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    .survey-input:focus { border-color: rgba(0,212,255,0.3); }
+    .survey-submit {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #00d4ff, #0099ff);
+      color: #000;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .survey-submit:hover { opacity: 0.9; }
+    .survey-thanks {
+      text-align: center;
+      padding: 20px;
+      color: #00d4ff;
+      font-size: 15px;
+      display: none;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .footer a { color: rgba(0,212,255,0.4); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .logo { font-size: 28px; letter-spacing: 6px; }
+      .features { grid-template-columns: 1fr 1fr; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo">生命星轨</div>
+  <div class="tagline">把你的人生变成3D星空</div>
+
+  <!-- 演示视频区域 -->
+  <div class="demo-video" id="demoVideo">
+    <div class="demo-placeholder">
+      <div class="orbit"></div>
+      <p>3D螺旋星轨演示</p>
+      <p style="margin-top:8px; font-size:11px; color:rgba(255,255,255,0.25);">点击下方按钮体验完整版</p>
+    </div>
+  </div>
+
+  <!-- 核心功能 -->
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📸</div>
+      <div class="feature-title">上传照片</div>
+      <div class="feature-desc">每个节点放你的真实照片</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">✏️</div>
+      <div class="feature-title">编辑文案</div>
+      <div class="feature-desc">写下你的故事和心情</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🎬</div>
+      <div class="feature-title">导出视频</div>
+      <div class="feature-desc">1080p高清，无水印</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🌐</div>
+      <div class="feature-title">微信直开</div>
+      <div class="feature-desc">不用下载，打开就用</div>
+    </div>
+  </div>
+
+  <!-- 定价 -->
+  <div class="pricing">
+    <div class="pricing-title">预售专享价</div>
+
+    <div class="price-card">
+      <div class="price-left">
+        <div class="price-name">免费版</div>
+        <div class="price-desc">10个节点 · 自动播放 · 截图导出 · 视频导出</div>
+      </div>
+      <div class="price-right">
+        <div class="price-amount">¥0</div>
+      </div>
+    </div>
+
+    <div class="price-card popular">
+      <div class="price-left">
+        <div class="price-name">高级版 <span class="price-badge">最受欢迎</span></div>
+        <div class="price-desc">3种星空皮肤 · 自定义标题 · AI智能文案</div>
+      </div>
+      <div class="price-right">
+        <div class="price-original">¥29.9</div>
+        <div class="price-amount">¥19.9</div>
+      </div>
+    </div>
+
+    <div class="price-card">
+      <div class="price-left">
+        <div class="price-name">纪念版</div>
+        <div class="price-desc">高级版全部 · 定制实体纪念册</div>
+      </div>
+      <div class="price-right">
+        <div class="price-original">¥149</div>
+        <div class="price-amount">¥99</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA 按钮 -->
+  <div class="cta-section">
+    <a href="https://you-in-mylife-everyday.pages.dev/" class="cta-btn cta-primary">
+      立即免费体验
+    </a>
+    <a href="https://you-in-mylife-everyday.pages.dev/guide.html" class="cta-btn cta-secondary">
+      查看操作指南
+    </a>
+  </div>
+
+  <!-- 意愿调查 -->
+  <div class="survey" id="survey">
+    <h3>告诉我你最想要什么</h3>
+
+    <div class="survey-group">
+      <label class="survey-label">你最想做什么主题？</label>
+      <div class="survey-options" data-name="theme">
+        <div class="survey-option" data-value="wedding">婚礼/恋爱</div>
+        <div class="survey-option" data-value="pet">宠物纪念</div>
+        <div class="survey-option" data-value="baby">宝宝成长</div>
+        <div class="survey-option" data-value="graduation">毕业纪念</div>
+        <div class="survey-option" data-value="life">人生回顾</div>
+        <div class="survey-option" data-value="memorial">亲人纪念</div>
+      </div>
+    </div>
+
+    <div class="survey-group">
+      <label class="survey-label">你愿意付费吗？</label>
+      <div class="survey-options" data-name="willingness">
+        <div class="survey-option" data-value="free">只用免费版</div>
+        <div class="survey-option" data-value="19.9">愿意付 ¥19.9</div>
+        <div class="survey-option" data-value="99">愿意付 ¥99</div>
+      </div>
+    </div>
+
+    <div class="survey-group">
+      <label class="survey-label">你会买实体纪念册吗？</label>
+      <div class="survey-options" data-name="physical">
+        <div class="survey-option" data-value="yes">会，¥99-299 都行</div>
+        <div class="survey-option" data-value="maybe">看效果再决定</div>
+        <div class="survey-option" data-value="no">不需要</div>
+      </div>
+    </div>
+
+    <div class="survey-group">
+      <label class="survey-label">你的微信号（可选，方便通知你）</label>
+      <input class="survey-input" type="text" id="wechat" placeholder="微信号或手机号" />
+    </div>
+
+    <button class="survey-submit" id="submitBtn">提交</button>
+    <div class="survey-thanks" id="thanks">感谢反馈！我们会认真对待每一条 ✨</div>
+  </div>
+</div>
+
+<div class="footer">
+  <p>生命星轨 · 让回忆触手可及</p>
+  <p style="margin-top:8px;">
+    <a href="https://you-in-mylife-everyday.pages.dev/terms.html">用户协议</a> ·
+    <a href="https://you-in-mylife-everyday.pages.dev/privacy.html">隐私政策</a>
+  </p>
+</div>
+
+<script>
+  // 选项点击逻辑
+  document.querySelectorAll('.survey-options').forEach(group => {
+    group.querySelectorAll('.survey-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        group.querySelectorAll('.survey-option').forEach(o => o.classList.remove('selected'))
+        opt.classList.add('selected')
+      })
+    })
+  })
+
+  // 提交逻辑
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const data: Record<string, string> = {}
+
+    document.querySelectorAll('.survey-options').forEach(group => {
+      const name = group.getAttribute('data-name') || ''
+      const selected = group.querySelector('.survey-option.selected')
+      if (selected) data[name] = selected.getAttribute('data-value') || ''
+    })
+
+    const wechat = (document.getElementById('wechat') as HTMLInputElement).value.trim()
+    if (wechat) data.wechat = wechat
+
+    if (!data.theme && !data.willingness && !data.physical) {
+      alert('请至少选择一个选项')
+      return
+    }
+
+    try {
+      await fetch('/api/preorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+    } catch {
+      // 即使 API 失败也保存到 localStorage
+    }
+
+    // 本地备份
+    const existing = JSON.parse(localStorage.getItem('starorbit_preorders') || '[]')
+    existing.push({ ...data, timestamp: new Date().toISOString() })
+    localStorage.setItem('starorbit_preorders', JSON.stringify(existing))
+
+    document.getElementById('survey')!.style.display = 'none'
+    document.getElementById('thanks')!.style.display = 'block'
+  })
+</script>
+</body>
+</html>
